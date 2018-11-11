@@ -1,0 +1,60 @@
+---
+title: "Selecting and checking living/non-living words"
+author: "Jörn Alexander Quent"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 6
+    theme: united
+---
+
+
+```{r setup, include=FALSE}
+# Libraries
+library(ggplot2)
+library(knitr)
+library(plyr)
+
+# Settings
+opts_knit$set(eval.after = 'fig.cap')
+opts_chunk$set(echo = TRUE,
+               warning = FALSE, 
+               message = FALSE,
+               fig.width = 10, 
+               fig.height= 7,
+               dpi=300, 
+               out.width="1200px",
+               out.height="700px")
+options(scipen = 30)
+
+```
+
+# Counting words
+```{r countingWords}
+# Loading words used in https://www.ncbi.nlm.nih.gov/pubmed/16421299?dopt=Abstract
+words        <- read.table('wordList_livingNonliving.txt')
+names(words) <- c('word', 'living')
+words$word   <- as.character(words$word)
+words$living <- factor(words$living, 
+                       c(1, 2) ,
+                       labels = c('living', 'non-living'))
+
+# How many words are there per category
+table(words$living)
+```
+
+# Finding word properties
+```{r findingProperties}
+words$wordLength <- nchar(words$word)
+
+# Over all word length
+mean(words$wordLength)
+
+# Word length by category
+ddply(words, 
+      c('living'),
+      summarise,
+      mean_wordLength = mean(wordLength),
+      SD_wordLength   = sd(wordLength))
+```
