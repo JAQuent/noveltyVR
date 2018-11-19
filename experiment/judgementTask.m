@@ -37,8 +37,12 @@ try
     fixColor   = [0, 0, 0];
     
     % Time variables
-    maxWordPreTime = 1; % Maximum word presentation time
-    fixPreTime     = 2; % fixation cross presentation time 
+    maxWordPreTime = 1; % Maximum word presentation time in sec
+    fixPreTime     = 2; % fixation cross presentation time in sec
+    % The values above for chosen based on Fenker, D.B., Frey, J.U., Schuetze, H., 
+    % Heipertz, D., Heinze, H.-J., Düzel, E., 2008. Novel scenes improve recollection 
+    % and recall of words. J. Cogn. Neurosci. 20, 1250–1265. https://doi.org/10.1162/jocn.2008.20086
+    
 
     % Relevant key codes
     KbName('UnifyKeyNames');
@@ -86,7 +90,8 @@ try
     % Checking for existing result file to prevent accidentally overwriting
     % files from a previous subject/session (except for subject numbers > 0):
     filePointer = fopen(fileNam,'wt'); % opens ASCII file for writing
-
+    % Add line with column names
+    
     % Creating trials
     [words, living] = textread(strcat('wordList_', num2str(wordList), '.txt'),'%s %n', 'delimiter',' ');
     nTrial          = length(words);
