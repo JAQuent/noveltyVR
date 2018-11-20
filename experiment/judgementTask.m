@@ -2,7 +2,7 @@ function [ ] = judgementTask(subNum, wordList)
 %judgementTask 
 % % % % % % % % % % % % % % % % % % % % % % % % % 
 % Judgement (living/non-living) task for noveltyVR
-% Author: Alexander Quent (alex.quent at mrc-cbu.cam.ac.uk
+% Author: Alexander Quent (alex.quent at mrc-cbu.cam.ac.uk)
 % Version: 1.0
 % % % % % % % % % % % % % % % % % % % % % % % % %
 
@@ -21,8 +21,8 @@ try
     rand('state', sum(100*clock));
 
     % General information about subject and session
-    date  = str2num(datestr(now,'yyyymmdd'));
-    time  = str2num(datestr(now,'HHMMSS'));
+    date  = datestr(now,'yyyymmdd');
+    time  = datestr(now,'HHMMSS');
 
     % Get information about the screen and set general things
     Screen('Preference', 'SuppressAllWarnings',0);
@@ -84,13 +84,10 @@ try
     HideCursor;
 
     % Output files
-    fileNam  = strcat('data/judgementTask_',num2str(subNum),'.dat'); % name of data file to write to
-    mSave    = strcat('data/judgementTask_',num2str(subNum),'.mat'); % name of another data file to write to (in .mat format)
-    mSaveALL = strcat('data/judgementTask_',num2str(subNum),'all.mat'); % name of another data file to write to (in .mat format)
-    % Checking for existing result file to prevent accidentally overwriting
-    % files from a previous subject/session (except for subject numbers > 0):
+    fileNam  = strcat('data/noveltyVR_judgementTask_', num2str(subNum), '_', date, '_', time, '.dat'); % name of data file to write to
+    mSave    = strcat('data/noveltyVR_judgementTask_', num2str(subNum), '_', date, '_', time, '.mat'); % name of another data file to write to (in .mat format)
+    mSaveALL = strcat('data/noveltyVR_judgementTask_', num2str(subNum), '_', date, '_', time, '_all.mat'); % name of another data file to write to (in .mat format)
     filePointer = fopen(fileNam,'wt'); % opens ASCII file for writing
-    % Add line with column names
     
     % Creating trials
     [words, living] = textread(strcat('wordList_', num2str(wordList), '.txt'),'%s %n', 'delimiter',' ');
@@ -105,7 +102,7 @@ try
     RT             = zeros(nTrial, 2) - 99;
     responses      = zeros(nTrial, 2) - 99;
     correctness    = zeros(nTrial, 1) - 99;
-    results        = cell(nTrial, 22); 
+    results        = cell(nTrial, 12); 
     
 
 %% Experimental loop
@@ -113,7 +110,6 @@ try
         if trial == 1
             % Instruction
             Screen('TextSize', myScreen, textSize(2)); % Sets size to instruction size
-            % Page 1
             DrawFormattedText(myScreen, messageIntro1, 'center', 'center');
             Screen('Flip', myScreen);
             KbReleaseWait;
@@ -172,7 +168,14 @@ try
         end
 
         %% Saving data
-        fprintf(filePointer,'%i %i %i %i %i %s %i %f %f %f %i %i\n', ...
+        % Create header on frist trial
+        if trial == 1
+             colNam = {'subNum', 'wordList', 'date', 'time', 'trial', 'word', 'living', 'preTimeFix', 'preTimeWord', 'RT', 'resp', 'acc'};
+             printHeader(filePointer, colNam)
+        end
+
+        % .dat file
+        fprintf(filePointer,'%i %i %s %s %i %s %i %f %f %f %i %i\n', ...
             subNum,...
             wordList,...
             date,...
@@ -186,17 +189,19 @@ try
             responses(trial),...
             correctness(trial));
 
-        % Save everything in a varibles that is saved at the end.
-        % subNo, date, time, 
-%         results{trial, 1}  = subNum;
-%         results{trial, 2}  = setNum;
-%         results{trial, 3}  = date;
-%         results{trial, 4}  = time;
-%         results{trial, 5}  = trial;
-%         results{trial, 6}  = objectNumber(trial);
-%         results{trial, 7}  = encodingLocation(trial);
-%         results{trial, 8}  = encodingRank(trial);
-%         results{trial, 9}  = foil1Location(trial);
+        %Save everything in a varibles that is saved at the end.
+        results{trial, 1}  = subNum;
+        results{trial, 2}  = wordList;
+        results{trial, 3}  = date;
+        results{trial, 4}  = time;
+        results{trial, 5}  = trial;
+        results{trial, 6}  = words{trial};
+        results{trial, 7}  = living(trial);
+        results{trial, 8}  = (wordOnset - fixOnset)*1000;
+        results{trial, 9}  = (wordOffset - wordOnset)*1000;
+        results{trial, 10} = RT(trial);
+        results{trial, 11} = responses(trial);
+        results{trial, 12} = responses(trial);
         
     end
     %% End of experiment

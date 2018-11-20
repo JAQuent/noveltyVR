@@ -1,8 +1,8 @@
-function [ ] = judgementTask(subNum, wordList)
+function [ ] = recNRKTask(subNum, oldList)
 %judgementTask 
 % % % % % % % % % % % % % % % % % % % % % % % % % 
-% Judgement (living/non-living) task for noveltyVR
-% Author: Alexander Quent (alex.quent at mrc-cbu.cam.ac.uk
+% Recognition new/remember/know task for noveltyVR
+% Author: Alexander Quent (alex.quent at mrc-cbu.cam.ac.uk)
 % Version: 1.0
 % % % % % % % % % % % % % % % % % % % % % % % % %
 
@@ -21,8 +21,8 @@ try
     rand('state', sum(100*clock));
 
     % General information about subject and session
-    date  = str2num(datestr(now,'yyyymmdd'));
-    time  = str2num(datestr(now,'HHMMSS'));
+    date  = datestr(now,'yyyymmdd');
+    time  = datestr(now,'HHMMSS');
 
     % Get information about the screen and set general things
     Screen('Preference', 'SuppressAllWarnings',0);
@@ -37,14 +37,17 @@ try
     fixColor   = [0, 0, 0];
     
     % Time variables
-    maxWordPreTime = 1; % Maximum word presentation time
-    fixPreTime     = 2; % fixation cross presentation time 
-
+    maxWordPreTime = 1; % Maximum word presentation time in sec
+    fixPreTime     = 3; % fixation cross presentation time in sec
+    % The values above for chosen based on Fenker, D.B., Frey, J.U., Schuetze, H., 
+    % Heipertz, D., Heinze, H.-J., Düzel, E., 2008. Novel scenes improve recollection 
+    % and recall of words. J. Cogn. Neurosci. 20, 1250–1265. https://doi.org/10.1162/jocn.2008.20086
+    
     % Relevant key codes
     KbName('UnifyKeyNames');
     space        = KbName('space');
     escape       = KbName('ESCAPE');
-    responseKeys = [KbName('l') KbName('n')];
+    responseKeys = [KbName('n') KbName('r') KbName('k')];
     % numberKeys need sto be adjusted for the respective layout of the
     % keyboard.
 
@@ -55,7 +58,7 @@ try
     
     % Instruction
     lineLength    = 70;
-    messageIntro1 = WrapString('Judgement task \n\n add introduction',lineLength);
+    messageIntro1 = WrapString('Recognition task \n\n add introduction',lineLength);
 
     % Opening window and setting preferences
     try
@@ -76,31 +79,37 @@ try
         end
     end
     center      = round([rect(3) rect(4)]/2);
+    legendPos   = 0.9;
     slack       = Screen('GetFlipInterval', myScreen)/2; % Getting lack for accurate timing
     HideCursor;
 
     % Output files
-    fileNam  = strcat('data/judgementTask_',num2str(subNum),'.dat'); % name of data file to write to
-    mSave    = strcat('data/judgementTask_',num2str(subNum),'.mat'); % name of another data file to write to (in .mat format)
-    mSaveALL = strcat('data/judgementTask_',num2str(subNum),'all.mat'); % name of another data file to write to (in .mat format)
-    % Checking for existing result file to prevent accidentally overwriting
-    % files from a previous subject/session (except for subject numbers > 0):
+    fileNam  = strcat('data/noveltyVR_recNRKTask_', num2str(subNum), '_', date, '_', time, '.dat'); % name of data file to write to
+    mSave    = strcat('data/noveltyVR_recNRKTask_', num2str(subNum), '_', date, '_', time, '.mat'); % name of another data file to write to (in .mat format)
+    mSaveALL = strcat('data/noveltyVR_recNRKTask_', num2str(subNum), '_', date, '_', time, '_all.mat'); % name of another data file to write to (in .mat format)
     filePointer = fopen(fileNam,'wt'); % opens ASCII file for writing
-
-    % Creating trials
-    [words, living] = textread(strcat('wordList_', num2str(wordList), '.txt'),'%s %n', 'delimiter',' ');
-    nTrial          = length(words);
     
-    % Randomizing order of trial
+    % Loading word lists
+    lists   = [1 2];
+    newList = lists(lists ~= oldList);
+    [oldWords, oldLiving] = textread(strcat('wordList_', num2str(oldList), '.txt'),'%s %n', 'delimiter',' ');
+    [newWords, newLiving] = textread(strcat('wordList_', num2str(newList), '.txt'),'%s %n', 'delimiter',' ');
+    oldNew = [ones(1, length(oldWords)) zeros(1, length(newWords))];
+    words  = vertcat(oldWords, newWords);
+    living = [oldLiving newLiving];
+    nTrial = length(words);
+    
+    % Randomizing order of trials
     shuffle = randsample(nTrial, nTrial);
     words   = words(shuffle);
     living  = living(shuffle);
+    oldNew  = oldNew(shuffle);
 
     % Response variables
     RT             = zeros(nTrial, 2) - 99;
     responses      = zeros(nTrial, 2) - 99;
     correctness    = zeros(nTrial, 1) - 99;
-    results        = cell(nTrial, 22); 
+    results        = cell(nTrial, 12); 
     
 
 %% Experimental loop
@@ -108,7 +117,6 @@ try
         if trial == 1
             % Instruction
             Screen('TextSize', myScreen, textSize(2)); % Sets size to instruction size
-            % Page 1
             DrawFormattedText(myScreen, messageIntro1, 'center', 'center');
             Screen('Flip', myScreen);
             KbReleaseWait;
@@ -129,16 +137,18 @@ try
         
         %% Presentation of word
         DrawFormattedText(myScreen, words{trial}, 'center', 'center');
+        DrawFormattedText(myScreen, '(n)ew, (r)emeber or (k)now?', 'center', rect(4)*legendPos);
         wordOnset = Screen('Flip', myScreen, fixOnset + fixPreTime);
 
         % Recording response
         notFlipped = true;
         [~, secs, keyCode] = KbCheck; % saves whether a key has been pressed, seconds and the key which has been pressed.
-        while keyCode(responseKeys(1)) == 0 && keyCode(responseKeys(2)) == 0 
+        while keyCode(responseKeys(1)) == 0 && keyCode(responseKeys(2)) == 0 && keyCode(responseKeys(3)) == 0
             [~, secs, keyCode] = KbCheck;
             % Flip screen after 1 sec without a response
-            % Slack needed to ensure 
+            % Slack needed to ensure correct presentation time
             if secs - wordOnset >= maxWordPreTime - slack && notFlipped
+                DrawFormattedText(myScreen, '(n)ew, (r)emeber or (k)now?', 'center', rect(4)*legendPos);
                 wordOffset = Screen('Flip', myScreen);
                 notFlipped = false;  
             end
@@ -154,22 +164,31 @@ try
 
         % Coding responses
         if keyCode(responseKeys(1)) == 1
-            responses(trial) = 1;
+            responses(trial) = 0;
         elseif keyCode(responseKeys(2)) == 1
+            responses(trial) = 1;
+        elseif keyCode(responseKeys(3)) == 1
             responses(trial) = 2; 
         end
 
         % Coding accuracy
-        if responses(trial) == living(trial)
+        if ((responses(trial) == 1 || responses(trial) == 2) && oldNew(trial) == 1) || (responses(trial) == 0 && oldNew(trial) == 0)
             correctness(trial) = 1;
         else
             correctness(trial) = 0;
         end
-
+        
         %% Saving data
-        fprintf(filePointer,'%i %i %i %i %i %s %i %f %f %f %i %i\n', ...
+        % Create header on frist trial
+        if trial == 1
+             colNam = {'subNum', 'oldNew', 'date', 'time', 'trial', 'word', 'living', 'preTimeFix', 'preTimeWord', 'RT', 'resp', 'acc'};
+             printHeader(filePointer, colNam)
+        end
+
+        % Saving data
+        fprintf(filePointer,'%i %i %s %s %i %s %i %f %f %f %i %i\n', ...
             subNum,...
-            wordList,...
+            oldNew(trial),...
             date,...
             time,...
             trial,...
@@ -179,19 +198,21 @@ try
             (wordOffset - wordOnset)*1000,...
             RT(trial),...
             responses(trial),...
-            correctness(trial));
+            responses(trial));
 
-        % Save everything in a varibles that is saved at the end.
-        % subNo, date, time, 
-%         results{trial, 1}  = subNum;
-%         results{trial, 2}  = setNum;
-%         results{trial, 3}  = date;
-%         results{trial, 4}  = time;
-%         results{trial, 5}  = trial;
-%         results{trial, 6}  = objectNumber(trial);
-%         results{trial, 7}  = encodingLocation(trial);
-%         results{trial, 8}  = encodingRank(trial);
-%         results{trial, 9}  = foil1Location(trial);
+        %Save everything in a varibles that is saved at the end.
+        results{trial, 1}  = subNum;
+        results{trial, 2}  = oldNew(trial);
+        results{trial, 3}  = date;
+        results{trial, 4}  = time;
+        results{trial, 5}  = trial;
+        results{trial, 6}  = words{trial};
+        results{trial, 7}  = living(trial);
+        results{trial, 8}  = (wordOnset - fixOnset)*1000;
+        results{trial, 9}  = (wordOffset - wordOnset)*1000;
+        results{trial, 10} = RT(trial);
+        results{trial, 11} = responses(trial);
+        results{trial, 12} = responses(trial);
         
     end
     %% End of experiment
