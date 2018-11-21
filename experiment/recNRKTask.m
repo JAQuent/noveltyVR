@@ -172,7 +172,9 @@ try
         end
 
         % Coding accuracy
-        if ((responses(trial) == 1 || responses(trial) == 2) && oldNew(trial) == 1) || (responses(trial) == 0 && oldNew(trial) == 0)
+        if (responses(trial) == 1 || responses(trial) == 2) && oldNew(trial) == 1
+            correctness(trial) = 1;
+        elseif responses(trial) == 0 && oldNew(trial) == 0
             correctness(trial) = 1;
         else
             correctness(trial) = 0;
