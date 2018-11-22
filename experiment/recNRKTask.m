@@ -49,7 +49,7 @@ try
     KbName('UnifyKeyNames');
     space        = KbName('space');
     escape       = KbName('ESCAPE');
-    responseKeys = [KbName('n') KbName('r') KbName('k')];
+    responseKeys = [KbName('n') KbName('r') KbName('f')];
     % numberKeys need sto be adjusted for the respective layout of the
     % keyboard.
 
@@ -150,7 +150,7 @@ try
             % Flip screen after 1 sec without a response
             % Slack needed to ensure correct presentation time
             if secs - wordOnset >= maxWordPreTime - slack && notFlipped
-                DrawFormattedText(myScreen, '(n)ew, (r)emeber or (k)now?', 'center', rect(4)*legendPos);
+                DrawFormattedText(myScreen, '(n)ew, (r)emeber or (f)amiliar?', 'center', rect(4)*legendPos);
                 wordOffset = Screen('Flip', myScreen);
                 notFlipped = false;  
             end
