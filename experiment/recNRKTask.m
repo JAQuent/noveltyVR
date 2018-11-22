@@ -58,7 +58,7 @@ try
     
     % Instruction
     lineLength    = 70;
-    messageIntro1 = WrapString('Recognition task \n\n add introduction',lineLength);
+    messageIntro1 = WrapString('Recognition task \n\n In this task, you will be either presented with an old/studied word, a word that you have seen yesterday when you completed the living/non-living judgement task, or with a new word that was not presented during this task. If you think a word is new press n. If you think you have seen this word yesterday hence an old/studied word, you need to decide whether you remember the word or whether the word is familiar to you. If you know you seen this word because for instance you know what you have thought while reading it, because you know which response you gave, because you know which word preceded or succeeded it or associate any other kind of information with seeing this word yesterday, then you choose remember. If you don’t know anything why you think you have seen this word and it just seems familiar, choose familiar. Note that the sense of familiarity can vary in strength. Please respond as fast and accurately as possible. ',lineLength);
 
     % Opening window and setting preferences
     try

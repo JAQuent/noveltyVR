@@ -59,7 +59,7 @@ try
     
     % Instruction
     lineLength    = 70;
-    messageIntro1 = WrapString('Judgement task \n\n add introduction',lineLength);
+    messageIntro1 = WrapString('Judgement task \n\n In this task, you will be presented with one word at a time. You need to decide whether the word describes or belongs to a living organism, in which case you press l for living, or whether it describes an object (that is non –living), in which case you press n for non-living. A living organism can be a person, an animal, a plant/fruit or just a part of any of those. Please respond as fast and as accurately as possible. ',lineLength);
 
     % Opening window and setting preferences
     try
