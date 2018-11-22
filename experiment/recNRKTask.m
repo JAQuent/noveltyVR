@@ -38,10 +38,12 @@ try
     
     % Time variables
     maxWordPreTime = 1; % Maximum word presentation time in sec
-    fixPreTime     = 3; % fixation cross presentation time in sec
+    fixPreTime     = 2; % fixation cross presentation time in sec
     % The values above for chosen based on Fenker, D.B., Frey, J.U., Schuetze, H., 
     % Heipertz, D., Heinze, H.-J., Düzel, E., 2008. Novel scenes improve recollection 
     % and recall of words. J. Cogn. Neurosci. 20, 1250–1265. https://doi.org/10.1162/jocn.2008.20086
+    % I made the presentation time of the fixation cross a sec shorter to save
+    % time.
     
     % Relevant key codes
     KbName('UnifyKeyNames');
