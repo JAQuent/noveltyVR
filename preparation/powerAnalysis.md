@@ -40,13 +40,18 @@ powerVal_exp1_remember[1] <- NA
 # Plot power curve
 ggplot(data.frame(n = 1:n_exp1_remember, power = powerVal_exp1_remember), aes(x = n, y = power)) + geom_line() + 
   geom_hline(yintercept = powerAim) +
-  labs(y = 'Estimate power', 
+  labs(y = 'Estimated power', 
        x = 'Number of participants per group', 
        title = 'Power curve based on Fenker et al. (2008)') + 
   coord_cartesian(expand = FALSE, ylim = c(0, 1))
 ```
 
 ![](powerAnalysis_files/figure-markdown_github/unnamed-chunk-2-1.png)
+
+Conclusion
+==========
+
+Based on the power analysis above, I need 116 participants in total to achieve 95 %.
 
 References
 ==========
