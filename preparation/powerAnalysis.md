@@ -1,0 +1,54 @@
+Power analysis for noveltyVR
+================
+
+Aim of this document
+====================
+
+Here, I am determinig the necessary sample size to find an effect with a power of 95 % based on the results of Fenker et al. (2008).
+
+Libraries
+=========
+
+``` r
+library(ggplot2)
+library(pwr)
+```
+
+Analysis
+========
+
+``` r
+# This is the power I want to have in this experiment
+powerAim <- 0.95 
+
+# From Table 1: Familiar 28% (SD = 15%) and novel 40% (SD = 23%). 
+effectSize_exp1_remember <- (40 - 28)/sqrt((23 * 23 + 15 * 15)/2)
+n_exp1_remember          <- 1
+powerVal_exp1_remember   <- c(0)
+
+
+while(max(powerVal_exp1_remember) < powerAim){
+   n_exp1_remember <- n_exp1_remember + 1
+  powerVal_exp1_remember[n_exp1_remember] <- pwr.t.test(n = n_exp1_remember,
+                                                        d = effectSize_exp1_remember,
+                                                        type = 'two.sample',
+                                                        alternative = 'greater')$power
+}
+# Replace zero with NA
+powerVal_exp1_remember[1] <- NA
+
+# Plot power curve
+ggplot(data.frame(n = 1:n_exp1_remember, power = powerVal_exp1_remember), aes(x = n, y = power)) + geom_line() + 
+  geom_hline(yintercept = powerAim) +
+  labs(y = 'Estimate power', 
+       x = 'Number of participants per group', 
+       title = 'Power curve based on Fenker et al. (2008)') + 
+  coord_cartesian(expand = FALSE, ylim = c(0, 1))
+```
+
+![](powerAnalysis_files/figure-markdown_github/unnamed-chunk-2-1.png)
+
+References
+==========
+
+Fenker, D. B., Frey, J. U., Schuetze, H., Heipertz, D., Heinze, H.-J., & Düzel, E. (2008). Novel scenes improve recollection and recall of words. Journal of Cognitive Neuroscience, 20(7), 1250–1265. <https://doi.org/10.1162/jocn.2008.20086>
