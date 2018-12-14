@@ -51,7 +51,7 @@ ggplot(data.frame(n = 1:n_exp1_remember, power = powerVal_exp1_remember), aes(x 
 Conclusion
 ==========
 
-Based on the power analysis above, I need 116 participants in total to achieve 95 % power.
+Based on the power analysis above, I need 116 participants in total to achieve 95 % power in the experiment.
 
 References
 ==========

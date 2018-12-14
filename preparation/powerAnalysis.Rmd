@@ -53,5 +53,6 @@ ggplot(data.frame(n = 1:n_exp1_remember, power = powerVal_exp1_remember), aes(x 
 # Conclusion
 Based on the power analysis above, I need `r n_exp1_remember*2` participants in total to achieve 95 % power. 
 
+
 # References
 Fenker, D. B., Frey, J. U., Schuetze, H., Heipertz, D., Heinze, H.-J., & Düzel, E. (2008). Novel scenes improve recollection and recall of words. Journal of Cognitive Neuroscience, 20(7), 1250–1265. https://doi.org/10.1162/jocn.2008.20086
