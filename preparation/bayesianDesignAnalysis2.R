@@ -25,6 +25,7 @@ datedFileNam <- function(fileName, fileEnding){
 # One sided hypothesis
 # following http://bayesfactor.blogspot.com/2014/02/bayes-factor-t-tests-part-2-two-sample.html
 # H0 = 0, H1 > 0
+# Open SBF
 openSBF_tTest_between_one <- function(params){
   nStart      <- params[1]
   nEnd        <- params[2]
@@ -73,18 +74,32 @@ openSBF_tTest_between_two <- function(params){
 # From Table 3
 effectSize  <- cohensD(45, 9, 55, 12)
 nStart      <- 10
-nEnd        <- 500
 targetBF    <- 10
 nIterations <- 10000
-paramsH0 <- data.frame(nStart     = rep(nStart, nIterations),
-                       nEnd       = rep(nEnd, nIterations),
-                       targetBF   = rep(targetBF, nIterations),
-                       effectSize = rep(0, nIterations))
 
-paramsH1 <- data.frame(nStart     = rep(nStart, nIterations),
+# Open SBF version
+# nEnd        <- 500
+# paramsH0 <- data.frame(nStart     = rep(nStart, nIterations),
+#                        nEnd       = rep(nEnd, nIterations),
+#                        targetBF   = rep(targetBF, nIterations),
+#                        effectSize = rep(0, nIterations))
+# 
+# paramsH1 <- data.frame(nStart     = rep(nStart, nIterations),
+#                        nEnd       = rep(nEnd, nIterations),
+#                        targetBF   = rep(targetBF, nIterations),
+#                        effectSize = rep(effectSize, nIterations))
+
+# Open SBF version + max
+nEnd        <- seq(26, 40, 1)
+paramsH0 <- data.frame(nStart     = rep(nStart, nIterations * length(nEnd)),
                        nEnd       = rep(nEnd, nIterations),
-                       targetBF   = rep(targetBF, nIterations),
-                       effectSize = rep(effectSize, nIterations))
+                       targetBF   = rep(targetBF, nIterations *length(nEnd)),
+                       effectSize = rep(0, nIterations * length(nEnd)))
+
+paramsH1 <- data.frame(nStart     = rep(nStart, nIterations * length(nEnd)),
+                       nEnd       = rep(nEnd, nIterations),
+                       targetBF   = rep(targetBF, nIterations * length(nEnd)),
+                       effectSize = rep(effectSize, nIterations * length(nEnd)))
 
 paramsH0 <- as.matrix(paramsH0)
 paramsH1 <- as.matrix(paramsH1)
@@ -94,13 +109,14 @@ numCores <- detectCores() - 1
 cluster  <- makeCluster(numCores)
 clusterExport(cluster, 'ttestBF')
 
-
 # Running analysis
 startTime <- Sys.time()
 bfH0      <- parRapply(cluster, paramsH0, openSBF_tTest_between_one)
 time1     <- Sys.time()
 bfH1      <- parRapply(cluster, paramsH1, openSBF_tTest_between_one)
 time2     <- Sys.time()
+
+print(time2)
 
 # Stopping analysis
 stopCluster(cluster)
