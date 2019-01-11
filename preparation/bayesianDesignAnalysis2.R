@@ -1,6 +1,9 @@
 # This script simulates an open-ended Sequential Bayes Factor analysis
 # for the project noveltyVR
 
+# Setting seed
+set.seed(39257)
+ 
 # Libraries
 library(BayesFactor)
 library(parallel)
@@ -19,7 +22,33 @@ datedFileNam <- function(fileName, fileEnding){
                sep = ''))
 }
 
-openSBF_tTest_between <- function(params){
+# One sided hypothesis
+# following http://bayesfactor.blogspot.com/2014/02/bayes-factor-t-tests-part-2-two-sample.html
+# H0 = 0, H1 > 0
+openSBF_tTest_between_one <- function(params){
+  nStart      <- params[1]
+  nEnd        <- params[2]
+  targetBF    <- params[3]
+  effectSize  <- params[4]
+  
+  # Creating populations
+  pop1 = rnorm(nEnd, effectSize, 1)
+  pop2 = rnorm(nEnd, 0, 1)
+  
+  # Sequential analysis
+  for(n in nStart:length(pop1)){
+    bf <- as.numeric(as.vector(ttestBF(pop1[1:n], pop2[1:n], nullInterval = c(0, Inf))[1]))
+    if(bf <= 1/targetBF | bf >= targetBF){
+      break
+    }
+  }
+  
+  return(c(bf, n))
+}
+
+# Two sided hypothesis (previously used)
+# H0 = 0, H1 != 0
+openSBF_tTest_between_two <- function(params){
   nStart      <- params[1]
   nEnd        <- params[2]
   targetBF    <- params[3]
@@ -68,9 +97,9 @@ clusterExport(cluster, 'ttestBF')
 
 # Running analysis
 startTime <- Sys.time()
-bfH0      <- parRapply(cluster, paramsH0, openSBF_tTest_between)
+bfH0      <- parRapply(cluster, paramsH0, openSBF_tTest_between_one)
 time1     <- Sys.time()
-bfH1      <- parRapply(cluster, paramsH1, openSBF_tTest_between)
+bfH1      <- parRapply(cluster, paramsH1, openSBF_tTest_between_one)
 time2     <- Sys.time()
 
 # Stopping analysis
