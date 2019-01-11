@@ -1,4 +1,4 @@
-# This script simulates an open-ended Sequential Bayes Factor analysis
+# This script simulates an Sequential Bayes Factor analysis with an upper limit
 # for the project noveltyVR
 
 # Setting seed
@@ -26,7 +26,7 @@ datedFileNam <- function(fileName, fileEnding){
 # following http://bayesfactor.blogspot.com/2014/02/bayes-factor-t-tests-part-2-two-sample.html
 # H0 = 0, H1 > 0
 # Open SBF
-openSBF_tTest_between_one <- function(params){
+SBF_tTest_between_one <- function(params){
   nStart      <- params[1]
   nEnd        <- params[2]
   targetBF    <- params[3]
@@ -49,7 +49,7 @@ openSBF_tTest_between_one <- function(params){
 
 # Two sided hypothesis (previously used)
 # H0 = 0, H1 != 0
-openSBF_tTest_between_two <- function(params){
+SBF_tTest_between_two <- function(params){
   nStart      <- params[1]
   nEnd        <- params[2]
   targetBF    <- params[3]
@@ -111,9 +111,9 @@ clusterExport(cluster, 'ttestBF')
 
 # Running analysis
 startTime <- Sys.time()
-bfH0      <- parRapply(cluster, paramsH0, openSBF_tTest_between_one)
+bfH0      <- parRapply(cluster, paramsH0, SBF_tTest_between_one)
 time1     <- Sys.time()
-bfH1      <- parRapply(cluster, paramsH1, openSBF_tTest_between_one)
+bfH1      <- parRapply(cluster, paramsH1, SBF_tTest_between_one)
 time2     <- Sys.time()
 
 print(time2)
