@@ -77,19 +77,7 @@ nStart      <- 10
 targetBF    <- 10
 nIterations <- 10000
 
-# Open SBF version
-# nEnd        <- 500
-# paramsH0 <- data.frame(nStart     = rep(nStart, nIterations),
-#                        nEnd       = rep(nEnd, nIterations),
-#                        targetBF   = rep(targetBF, nIterations),
-#                        effectSize = rep(0, nIterations))
-# 
-# paramsH1 <- data.frame(nStart     = rep(nStart, nIterations),
-#                        nEnd       = rep(nEnd, nIterations),
-#                        targetBF   = rep(targetBF, nIterations),
-#                        effectSize = rep(effectSize, nIterations))
-
-# Open SBF version + max
+# SBF version + max
 nEnd        <- seq(26, 40, 1)
 paramsH0 <- data.frame(nStart     = rep(nStart, nIterations * length(nEnd)),
                        nEnd       = rep(nEnd, nIterations),
