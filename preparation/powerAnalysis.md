@@ -4,7 +4,7 @@ Design analysis for noveltyVR
 Aim of this document
 ====================
 
-Instead of a frequentist statistics as planned previously, we decided to use a Bayesian framework more specifically a Sequential Bayesian Factor (SBF) analysis to examine whether the experience of novelty can enhance memory for unrelated information.
+Instead of frequentist statistics as planned previously, we decided to use a Bayesian framework more specifically a Sequential Bayesian Factor (SBF) analysis to examine whether the experience of novelty can enhance memory for unrelated information.
 
 Nevertheless, I also report the power analysis that I ran, in which I am determining the necessary sample size to find an effect with a power of 95 % based on the results of Fenker et al. (2008). Even though a Bayesian approach will be used, this power analysis provide useful guidance that will be used to justify an upper limit.
 
@@ -21,8 +21,8 @@ library(ggplot2)
 library(pwr)
 library(plyr)
 library(knitr)
-library(grid)
-library(gridExtra)
+library(cowplot)
+theme_set(theme_grey()) # Important to retain the ggplot theme
 ```
 
 Calculating effect sizes
@@ -46,7 +46,7 @@ We are using the effect sizes from Fenker et al. (2008) to plan our study. In to
 
 The effect size most suitable to base our study on was immediate recall in Experiment 2, which was *d* = 0.94. I am going to use this to base my simulation of my design analysis on. It is also the one with the highest effect size.
 
-There are good reasons to choose free recall as the central measure for the novelty effect of VR. First, it is a straight forward test of memory performance that in contrast o qualitative memory, it has less theoretical assumptions than remember/recollection and it best suited for our paradigm.
+There are good reasons to choose free recall as the central measure for the novelty effect of VR. First, it is a straight forward test of memory performance as it has less theoretical assumptions than remember/recollection and it best suited for our paradigm.
 
 As a side note, it is also interesting to see that the effect size increased from delayed recognition compared to immediate recognition, which can be interpreted as evidence for consolidation. This is an argument for including delayed recognition to our design.
 
@@ -128,7 +128,7 @@ If we used a frequentist approach, we would have 95 % power to detect a signific
 Bayesian design analysis
 ------------------------
 
-For the study, we plan to use a SBF analysis with an upper limit on the sample size and an endpoint Bayes factor of 10. The upper limit is set to 26 for the reasons mentioned above. The simulation below will help us to determine whether that upper limit will help us to provide conclusive evidence. The design analysis is based on Schönbrodt & Wagenmakers (2018).
+For the study, we plan to use a SBF analysis with an upper limit of the sample size and an endpoint Bayes factor of 10. The upper limit is set to 26 for the reasons mentioned above. The simulation below will help us to determine whether that upper limit will help us to provide conclusive evidence. The design analysis is based on Schönbrodt & Wagenmakers (2018).
 
 I needed a couple of attempts to run the correct simulation for the Bayesian design analysis. In my first attempt (can be found [here](https://github.com/JAQuent/noveltyVR/blob/master/preparation/bayesianDesignAnalysis1.R)), the problem was that I just sampled Bayes factors for various fixed sample sizes, but I did not actually simulate sequential testing. The data of that simulation can be found [here](https://github.com/JAQuent/noveltyVR/blob/master/preparation/noveltyVR_bayesianDesignAnalysis_20190108_165205.RData). In another [simulation](https://github.com/JAQuent/noveltyVR/blob/master/preparation/noveltyVR_SBF_DesignAnalysis_20190109_165631.RData) , I ran a simulation with an upper limit of 500 participants per group without realising that I cannot properly calculate the Bayes factor at the upper limit I actually want to select. I then re-ran the [simulation](https://github.com/JAQuent/noveltyVR/blob/master/preparation/noveltyVR_SBF_DesignAnalysis_20190110_103336.RData) then sampling actually realistic sample sizes. However the problem with that was that I did not use the correct hypothesis. The hypotheses in this simulation were *H*<sub>0</sub> : *μ* = 0 and *H*<sub>1</sub> : *μ* ≠ 0. Since we do not expect the novelty group to show worse memory performance than the control group, I re-ran the analysis with these hypotheses: *H*<sub>0</sub> : *μ* = 0 and *H*<sub>1</sub> : *μ* &gt; 0.
 
@@ -343,7 +343,7 @@ rightDirection_H0 <- sum(dataH0$n == upperLimit & dataH0$BF < 1) / (sum(dataH0$n
 rightDirection_H1 <- sum(dataH1$n == upperLimit & dataH1$BF > 1) / (sum(dataH1$n == 26 & dataH1$BF <= 1) + sum(dataH1$n == upperLimit & dataH1$BF > 1))
 ```
 
-If data collection is stopped at the upper limit, then 92 % of the Bayes factors show in the right direction under *H*<sub>0</sub> and 89 % under *H*<sub>1</sub>. This shows that even if the rigorous evidence level is not reached after collection 26 per group, we will be still very likely to get a Bayes factor in the correct direction.
+If data collection is stopped at the upper limit, then 92 % of the Bayes factors show in the right direction under *H*<sub>0</sub> and 89 % under *H*<sub>1</sub>. This shows that even if the rigorous evidence level is not reached after collecting 26 per group, we will be still very likely to get a Bayes factor in the correct direction.
 
 ### 4. How will the distribution of sample sizes look like?
 
@@ -360,7 +360,9 @@ plot1 <- ggplot(dataH0, aes(x = n)) + geom_bar() +
        title = bquote('Distribution of sample sizes under '*H[0])) +
   theme(axis.title.x = element_blank(),
         axis.text.x = element_blank(),
-        axis.ticks.x = element_blank())
+        axis.ticks.x = element_blank(),
+        plot.margin = unit(c(0,0,0,0), "cm"),
+        panel.margin = unit(c(0,0,0,0), "cm"))
 
 plot2 <- ggplot(dataH0_trans, aes(x =  n, y = BF)) + 
   geom_boxplot() +
@@ -372,16 +374,16 @@ plot2 <- ggplot(dataH0_trans, aes(x =  n, y = BF)) +
        title = bquote('Distribution of Bayes factors by sample size under '*H[0])) +
   scale_y_continuous(breaks = c(-10, -3, 0, 3, 10), 
                      labels = c('1/10', '1/3', '1', '3', '10'),
-                     limits = c(-14, 14))
+                     limits = c(-14, 14)) +
+  theme(plot.margin = unit(c(0,0,0,0), "cm"),
+        panel.margin = unit(c(0,0,0,0), "cm"))
 
-grid.arrange(plot1,
-             plot2,
-             ncol = 1)
+plot_grid(plot1, plot2, ncol = 1, align = "v")
 ```
 
 ![](powerAnalysis_files/figure-markdown_github/unnamed-chunk-10-1.png)
 
-The plot above shows the simulation for the upper limit of 26 participants under *H*<sub>0</sub>. The top half of plot shows the number of runs that end with the respective sample size shown on the x-axis. The vast majority of runs did not reach the evidence criterion. With sample sizes over 21, the Bayes factor consistently show in right direction as indicated by box plots in the second halt of the plot. If *H*<sub>0</sub> is true most runs stop at the upper limit but still result in a median Bayes factor of 0.28, which more than anecdotal evidence.
+The plot above shows the simulation for the upper limit of 26 participants under *H*<sub>0</sub>. The top half of plot shows the number of runs that end with the respective sample size shown on the x-axis. The vast majority of runs did not reach the evidence criterion. With sample sizes over 21, the Bayes factor consistently points in right direction as indicated by box plots in the second halt of the plot. If *H*<sub>0</sub> is true most runs stop at the upper limit but still result in a median Bayes factor of 0.28, which more than anecdotal evidence.
 
 ``` r
 # For H1
@@ -409,9 +411,7 @@ plot4 <- ggplot(dataH1_trans, aes(x =  n, y = BF)) +
                      labels = c('1/10', '1/3', '1', '3', '10'),
                      limits = c(-14, 14))
 
-grid.arrange(plot3,
-             plot4,
-             ncol = 1)
+plot_grid(plot3, plot4, ncol = 1, align = "v")
 ```
 
 ![](powerAnalysis_files/figure-markdown_github/unnamed-chunk-11-1.png)
