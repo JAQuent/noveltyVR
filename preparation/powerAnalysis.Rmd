@@ -11,7 +11,7 @@ options(scipen = 30)
 ```
 
 # Aim of this document
-Instead of a frequentist statistics as planned previously, we decided to use a Bayesian framework more specifically a Sequential Bayesian Factor (SBF) analysis to examine whether the experience of novelty can enhance memory for unrelated information. 
+Instead of frequentist statistics as planned previously, we decided to use a Bayesian framework more specifically a Sequential Bayesian Factor (SBF) analysis to examine whether the experience of novelty can enhance memory for unrelated information. 
 
 Nevertheless, I also report the power analysis that I ran, in which I am determining the necessary sample size to find an effect with a power of 95 % based on the results of Fenker et al. (2008). Even though a Bayesian approach will be used, this power analysis provide useful guidance that will be used to justify an upper limit.
 
