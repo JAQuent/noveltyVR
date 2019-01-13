@@ -127,7 +127,7 @@ for(i in 1:dim(wordsSubset)[1]){
 wordsSubset[wordsSubset == 0] <- NA_real_
 ```
 
-Note that all lot of values of the database are 0, which are here counted as NA. This explains the huge variability of the number of data points below. $BF_{01}$
+Note that all lot of values of the database are 0, which are here counted as NA. This explains the huge variability of the number of data points below. 
 
 # Inspecting word properties of Living vs. non-living words
 ```{r inspection}

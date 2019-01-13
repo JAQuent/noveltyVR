@@ -91,7 +91,7 @@ for(i in 1:dim(wordsSubset)[1]){
 wordsSubset[wordsSubset == 0] <- NA_real_
 ```
 
-Note that all lot of values of the database are 0, which are here counted as NA. This explains the huge variability of the number of data points below. *B**F*<sub>01</sub>
+Note that all lot of values of the database are 0, which are here counted as NA. This explains the huge variability of the number of data points below. $BF_{01}$
 
 Inspecting word properties of Living vs. non-living words
 =========================================================
@@ -219,7 +219,7 @@ gridPlot <- grid.arrange(plot7,
 
 ![](selectingCheckingWords_files/figure-markdown_github/inspection-2.png)
 
-As can be seen above, living and non-living words only differed in terms of their Kucera-Francis number of categories ([K-F-NCATS](http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html#K-F)), age of acquisition ([AOA](http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html#AOA)), concreteness ([CONC](http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html#CONC)), and imagability ([IMAG](http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html#IMAG)). As the same number of living and non-living words will be randomly assigned to the word lists used in the experiment, those difference are not an important issue.
+As can be seen above by the Bayes factors, living and non-living words only differed in terms of age of acquisition ([AOA](http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html#AOA)), concreteness ([CONC](http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html#CONC)). All other Bayes factos are below 1. In any case as the same number of living and non-living words will be randomly assigned to the word lists used in the experiment, those difference are not an important issue.
 
 Splitting into two word lists
 =============================
