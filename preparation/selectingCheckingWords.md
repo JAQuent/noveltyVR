@@ -1,64 +1,19 @@
----
-title: "Selecting and checking living/non-living words"
-author: "Jörn Alexander Quent"
-date: "`r format(Sys.time(), '%B %d, %Y')`"
-output: github_document
----
+Selecting and checking living/non-living words
+================
+Jörn Alexander Quent
+January 13, 2019
 
+Aim
+===
 
+Here, I am selecting 200 words for a new project called noveltyVR, in which I am going to try to study the effect of novelty on something that was learned before. In this case, it will be a list of words that were incidentally encoded in a living/non-living judgement task. I will select 200 words from a published study, look up their properties in the [MRC Psycholinguistic Database](http://websites.psychology.uwa.edu.au/school/MRCDatabase/uwa_mrc.htm) and create two lists that are used as old and new stimuli in a recognition task.
 
-```{r setup, include=FALSE}
-# Libraries
-library(ggplot2)
-library(knitr)
-library(plyr)
-library(gridExtra)
-library(grid)
-library(BayesFactor)
-library(latex2exp)
+Counting words
+==============
 
-# Settings
-opts_knit$set(eval.after = 'fig.cap')
-opts_chunk$set(echo = TRUE,
-               warning = FALSE, 
-               message = FALSE,
-               fig.width = 10, 
-               fig.height= 7)
-options(scipen = 30)
+Here, I just count the words that are included in the file that was provided to me.
 
-# Function
-pValue <-function(x, sign = '='){
-  if (inherits(x, "lm")){
-    s <- summary.lm(x)
-    x <- pf(s$fstatistic[1L], s$fstatistic[2L], s$fstatistic[3L], lower.tail = FALSE)
-    if(x > 1){
-      stop("There is no p-value greater than 1")
-    } else if(x > 0){
-      stop("There is no p-value smaller than 0")
-    } else if(x < 0.001){
-      x.converted <- '< .001'
-    } else{
-      x.converted <- paste(sign,substr(as.character(round(x, 3)), 2,5))
-    } 
-  } else {
-    if(x > 1){
-      stop("There is no p-value greater than 1")
-    } else if(x < 0.001){
-      x.converted <- '< .001'
-    } else{
-      x.converted <- paste(sign,substr(as.character(round(x, 3)), 2,5))
-    } 
-  }
-  return(x.converted)
-}
-```
-
-# Aim
-Here, I am selecting 200 words for a new project called noveltyVR, in which I am going to try to study the effect of novelty on something that was learned before. In this case, it will be a list of words that were incidentally encoded in a living/non-living judgement task. I will select 200 words from a published study, look up their properties in the [MRC Psycholinguistic Database](http://websites.psychology.uwa.edu.au/school/MRCDatabase/uwa_mrc.htm) and create two lists that are used as old and new stimuli in a recognition task. 
-
-# Counting words
-Here, I just count the words that are included in the file that was provided to me. 
-```{r countingWords}
+``` r
 # Loading words used in https://www.ncbi.nlm.nih.gov/pubmed/16421299?dopt=Abstract
 words        <- read.table('U:/Projects/noveltyVR/preparation/wordList_livingNonliving.txt')
 names(words) <- c('word', 'living')
@@ -71,11 +26,19 @@ words$living <- factor(words$living,
 table(words$living)
 ```
 
-Below I am going to exclude 4 words randomly because there are more non-living words. 
+    ## 
+    ##     living non-living 
+    ##        100        104
 
-# Finding word properties
-## Loading MRC data base
-```{r loadingDatabase}
+Below I am going to exclude 4 words randomly because there are more non-living words.
+
+Finding word properties
+=======================
+
+Loading MRC data base
+---------------------
+
+``` r
 # Loading MRC Psycholinguistic data base 
 # See http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html
 mrcDatabase <- read.csv('U:/Projects/noveltyVR/preparation/ignore_WordStim/mrcOnly.txt', 
@@ -84,11 +47,12 @@ mrcDatabase <- read.csv('U:/Projects/noveltyVR/preparation/ignore_WordStim/mrcOn
                         as.is = TRUE , 
                         na.strings = '', 
                         sep = '\t')
-
 ```
 
-## Looking up values for words used
-```{r findingProperties}
+Looking up values for words used
+--------------------------------
+
+``` r
 # Excluding 4 words from 104 to get 100
 set.seed(487)
 wordsSubset <- words[words$word != words[sample(which(words$living == 'non-living'), 4), 'word'],]
@@ -127,10 +91,12 @@ for(i in 1:dim(wordsSubset)[1]){
 wordsSubset[wordsSubset == 0] <- NA_real_
 ```
 
-Note that all lot of values of the database are 0, which are here counted as NA. This explains the huge variability of the number of data points below. $BF_{01}$
+Note that all lot of values of the database are 0, which are here counted as NA. This explains the huge variability of the number of data points below. *B**F*<sub>01</sub>
 
-# Inspecting word properties of Living vs. non-living words
-```{r inspection}
+Inspecting word properties of Living vs. non-living words
+=========================================================
+
+``` r
 bfTemp <- ttestBF(na.omit(wordsSubset$K.F.FREQ[wordsSubset$living == 'living']),
                   na.omit(wordsSubset$K.F.FREQ[wordsSubset$living == 'non-living']))
 bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
@@ -236,7 +202,11 @@ gridPlot <- grid.arrange(plot1,
                          plot6,
                          ncol = 2, 
                          nrow = 3)
+```
 
+![](selectingCheckingWords_files/figure-markdown_github/inspection-1.png)
+
+``` r
 gridPlot <- grid.arrange(plot7,
                          plot8,
                          plot9,
@@ -247,11 +217,16 @@ gridPlot <- grid.arrange(plot7,
                          nrow = 3)
 ```
 
-As can be seen above by the Bayes factors, living and non-living words only differed in terms of age of acquisition ([AOA](http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html#AOA)), concreteness ([CONC](http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html#CONC)). All other Bayes factos are below 1. In any case as the same number of living and non-living words will be randomly assigned to the word lists used in the experiment, those difference are not an important issue.
+![](selectingCheckingWords_files/figure-markdown_github/inspection-2.png)
 
-# Splitting into two word lists
-Here I randomly assign half of the words to the word list 1 and 2. 
-```{r creatingWordlists}
+As can be seen above, living and non-living words only differed in terms of their Kucera-Francis number of categories ([K-F-NCATS](http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html#K-F)), age of acquisition ([AOA](http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html#AOA)), concreteness ([CONC](http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html#CONC)), and imagability ([IMAG](http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html#IMAG)). As the same number of living and non-living words will be randomly assigned to the word lists used in the experiment, those difference are not an important issue.
+
+Splitting into two word lists
+=============================
+
+Here I randomly assign half of the words to the word list 1 and 2.
+
+``` r
 # Experimental script take 1 or 2
 wordsSubset$livingNum <- 1
 wordsSubset[which(wordsSubset$living == 'non-living'), 'livingNum'] <- 2
@@ -272,8 +247,10 @@ combinedLists      <- rbind(wordList1, wordList2)
 combinedLists$list <- as.factor(rep(c(1, 2), each = 100))
 ```
 
-## Inspecting word list properties
-```{r inspectingWordlists}
+Inspecting word list properties
+-------------------------------
+
+``` r
 bfTemp <- ttestBF(na.omit(combinedLists$K.F.FREQ[combinedLists$list == 1]),
                   na.omit(combinedLists$K.F.FREQ[combinedLists$list == 2]))
 bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
@@ -379,7 +356,11 @@ gridPlot <- grid.arrange(plot1,
                          plot6,
                          ncol = 2, 
                          nrow = 3)
+```
 
+![](selectingCheckingWords_files/figure-markdown_github/inspectingWordlists-1.png)
+
+``` r
 gridPlot <- grid.arrange(plot7,
                          plot8,
                          plot9,
@@ -390,9 +371,11 @@ gridPlot <- grid.arrange(plot7,
                          nrow = 3)
 ```
 
-There are no systematic/significant differences between the word lists. Therefore I will use them for my study as foil and study lists. 
+![](selectingCheckingWords_files/figure-markdown_github/inspectingWordlists-2.png)
 
-```{r creatingTable}
+There are no systematic/significant differences between the word lists. Therefore I will use them for my study as foil and study lists.
+
+``` r
 # Aggregating the mean, the SD and the number of words that have values for every metric
 wordListsMetrics <- ddply(combinedLists, 
                           c('list'),
@@ -457,12 +440,29 @@ wordListsMetrics_table <- ddply(wordListsMetrics_t,
 kable(wordListsMetrics_table)
 ```
 
-The table above just illustrate list the exact mean values plus SD for every metric available in the database and the number of values, on which the mean and the SD is based. 
+| Metric      |  list1\_mean|   list1\_SD|  list1\_N|  list2\_mean|   list2\_SD|  list2\_N|
+|:------------|------------:|-----------:|---------:|------------:|-----------:|---------:|
+| AOA         |   325.148100|   87.529210|        27|   349.200000|   87.572350|        25|
+| BROWN.FREQ  |     2.612903|    2.458691|        31|     2.843750|    3.361157|        32|
+| CONC        |   575.396600|   44.594450|        58|   569.592600|   53.757850|        54|
+| FAM         |   495.968300|   47.913220|        63|   484.947400|   47.300490|        57|
+| IMAG        |   574.474600|   47.313830|        59|   570.181800|   49.954830|        55|
+| K.F.FREQ    |     9.967391|   11.724353|        92|     9.134831|    8.192556|        89|
+| K.F.NCATS   |     4.076087|    2.890810|        92|     4.033708|    2.492942|        89|
+| K.F.NSAMP   |     6.804348|    8.148672|        92|     5.674157|    5.087362|        89|
+| MEANC       |   420.782600|   51.602290|        46|   429.227300|   49.234070|        44|
+| MEANP       |   696.538500|   59.002280|        13|   668.181800|   57.337280|        11|
+| T.L.FREQ    |    92.648350|  110.490500|        91|    74.793100|  105.663800|        87|
+| Word length |     5.680000|    1.398990|       100|     5.860000|    1.356019|       100|
 
-## Writing text files
-As all checks were completed without a problem, I create the input files for the living/non-living judgement task below. 
+The table above just illustrate list the exact mean values plus SD for every metric available in the database and the number of values, on which the mean and the SD is based.
 
-```{r writingFiles, eval = FALSE}
+Writing text files
+------------------
+
+As all checks were completed without a problem, I create the input files for the living/non-living judgement task below.
+
+``` r
 # Word list 1
 write.table(subset(combinedLists, combinedLists$list == 1, select = c('word', 'livingNum')),
           'wordList_1.txt',
