@@ -88,10 +88,12 @@ stopRule <- function(targetBF, bfs, ruleType){
     stopping <- any(bfs > targetBF| bfs < 1/targetBF)
   } else if(ruleType == 'all'){
     stopping <- all(bfs > targetBF| bfs < 1/targetBF)
+  } else if(ruleType == 'second'){
+    stopping <- bfs[2] > targetBF | bfs[2] < 1/targetBF
   } else {
     stop('Rule type not avaiable')
   }
-  
+  return(stopping)
 }
 
 # Open SBF with upper limit
@@ -113,7 +115,7 @@ SBF_ANOVA_between_one_within_two_anyBF <- function(params){
              as.numeric(as.vector(bf[9]/bf[8])),   # What's the evidence for an interaction between A and B?
              as.numeric(as.vector(bf[11]/bf[8])),  # What's the evidence for an interaction between A and C?
              as.numeric(as.vector(bf[18]/bf[17]))) # What's the evidence for an interaction between A and B and C?
-    if(stopRule(targetBF, bfs, 'all') | n == maxN){
+    if(stopRule(targetBF, bfs, 'second') | n == maxN){
       break
     }
   }
@@ -196,7 +198,7 @@ paramsH3 <- as.matrix(paramsH3)
 paramsH4 <- as.matrix(paramsH4)
 
 # Creating cluster
-numCores <- detectCores() - 1
+numCores <- detectCores() - 2
 print(paste('Cores used:', numCores))
 cluster  <- makeCluster(numCores)
 clusterExport(cluster, c('anovaBF', 
@@ -229,4 +231,4 @@ print(paste('Finished 5:', time5))
 stopCluster(cluster)
 
 # Saving results
-save.image(file = datedFileNam('noveltyVR_SBF_DesignAnalysis_ANOVA_stopAll', '.RData'))
+save.image(file = datedFileNam('noveltyVR_SBF_DesignAnalysis_ANOVA_second', '.RData'))
