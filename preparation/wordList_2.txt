@@ -1,100 +1,144 @@
-PLUMBER 1
-CARDINAL 1
-PEACOCK 1
-DOLPHIN 1
-FOAL 1
-CROW 1
-MINK 1
-OYSTER 1
-SPIDER 1
-NOSTRIL 1
-PREACHER 1
-SPINACH 1
-LEMON 1
-PONY 1
-JANITOR 1
-FALCON 1
-CHERRY 1
-SNAIL 1
-MONKEY 1
-ACTRESS 1
-DWARF 1
-ENVOY 1
-PET 1
-BEAR 1
-FUNGUS 1
-DEER 1
-SWAN 1
-COBBLER 1
-EAGLE 1
-APPLE 1
-DUCK 1
-HERD 1
-HAWK 1
-NECK 1
-POULTRY 1
-ROBIN 1
-GOAT 1
-LAMB 1
-DOVE 1
-NATIVE 1
-LIZARD 1
-BANANA 1
-TIGER 1
-ASSASSIN 1
-ROOSTER 1
-TROUT 1
-COLT 1
-PHEASANT 1
-BULL 1
-LION 1
-LATTICE 2
-ENVELOPE 2
-COVE 2
-LOCK 2
-ALARM 2
-MOLECULE 2
-AXLE 2
-CANYON 2
-LAGOON 2
-DIAGRAM 2
-ANTIQUE 2
-FREEZER 2
-GALLON 2
-CELLAR 2
-DUNE 2
-BISCUIT 2
-BROCHURE 2
-ARTIFACT 2
-IGNITION 2
-DIAMOND 2
-HINGE 2
-DRUM 2
-ATTIC 2
-BLIZZARD 2
-CHIMNEY 2
-NUCLEUS 2
-JEEP 2
-CIRCUIT 2
-COUPON 2
-BOOTH 2
-ANCHOR 2
-ERASER 2
-MAST 2
-CAKE 2
-DETERGENT 2
-DITCH 2
-BARRIER 2
-CORD 2
-FOLDER 2
-DRILL 2
-GRANITE 2
-GRANULE 2
-FEAST 2
-CHISEL 2
-GLOBE 2
-COSTUME 2
-CASTLE 2
-PACKET 2
-GLIDER 2
-JAIL 2
+DWARF animate alphabetical
+MANGO animate alphabetical
+BEAR animate alphabetical
+HERON animate alphabetical
+ROOT animate alphabetical
+DEER animate alphabetical
+ANKLE animate alphabetical
+RODENT animate alphabetical
+PANSY animate alphabetical
+PHEASANT animate alphabetical
+CARDINAL animate alphabetical
+ELEPHANT animate alphabetical
+ABDOMEN animate alphabetical
+JANITOR animate alphabetical
+DENTIST animate alphabetical
+CANCER animate alphabetical
+CHEF animate alphabetical
+GYPSY animate alphabetical
+COMRADE animate alphabetical
+CLAM animate alphabetical
+JUROR animate alphabetical
+LIGAMENT animate alphabetical
+MAGGOT animate alphabetical
+CABBAGE animate alphabetical
+LION animate alphabetical
+CYST animate alphabetical
+DOLPHIN animate alphabetical
+BUSH animate alphabetical
+HUNTER animate alphabetical
+CAMEL animate alphabetical
+LOBSTER animate alphabetical
+ATHLETE animate alphabetical
+LARYNX animate alphabetical
+SINEW animate alphabetical
+EMBRYO animate alphabetical
+CALF animate alphabetical
+HORMONE animate non-alphabetical
+PRINCE animate non-alphabetical
+MOUSTACHE animate non-alphabetical
+GRAPE animate non-alphabetical
+WALRUS animate non-alphabetical
+SAPLING animate non-alphabetical
+ROSE animate non-alphabetical
+ULCER animate non-alphabetical
+ZEBRA animate non-alphabetical
+SHEEP animate non-alphabetical
+SPICE animate non-alphabetical
+TURNIP animate non-alphabetical
+WART animate non-alphabetical
+PRAWN animate non-alphabetical
+MUSHROOM animate non-alphabetical
+CRAB animate non-alphabetical
+POLLEN animate non-alphabetical
+ENZYME animate non-alphabetical
+TROTTER animate non-alphabetical
+MOLE animate non-alphabetical
+SPIDER animate non-alphabetical
+WRIST animate non-alphabetical
+SWAN animate non-alphabetical
+TOMATO animate non-alphabetical
+VIRUS animate non-alphabetical
+WASP animate non-alphabetical
+TUSK animate non-alphabetical
+SKULL animate non-alphabetical
+SAILOR animate non-alphabetical
+NOSTRIL animate non-alphabetical
+TOAD animate non-alphabetical
+EAGLE animate non-alphabetical
+SINUS animate non-alphabetical
+PARASITE animate non-alphabetical
+STEROID animate non-alphabetical
+FLEA animate non-alphabetical
+DETERGENT inanimate alphabetical
+COCKTAIL inanimate alphabetical
+LANTERN inanimate alphabetical
+LAGOON inanimate alphabetical
+SPRAY inanimate alphabetical
+PAINT inanimate alphabetical
+RUST inanimate alphabetical
+DOCK inanimate alphabetical
+BUCKET inanimate alphabetical
+RACKET inanimate alphabetical
+ASTERISK inanimate alphabetical
+CAVERN inanimate alphabetical
+DIGITAL inanimate alphabetical
+ARTIFACT inanimate alphabetical
+BASKET inanimate alphabetical
+ANTIQUE inanimate alphabetical
+FREEZER inanimate alphabetical
+JEWEL inanimate alphabetical
+BALLOON inanimate alphabetical
+COLLAR inanimate alphabetical
+BUTTON inanimate alphabetical
+CARTON inanimate alphabetical
+COIN inanimate alphabetical
+MANSION inanimate alphabetical
+CANNON inanimate alphabetical
+CALORIE inanimate alphabetical
+CHIMNEY inanimate alphabetical
+SEDIMENT inanimate alphabetical
+EMBASSY inanimate alphabetical
+BUOY inanimate alphabetical
+PACKET inanimate alphabetical
+ASHTRAY inanimate alphabetical
+CARGO inanimate alphabetical
+GOWN inanimate alphabetical
+CASINO inanimate alphabetical
+DUNE inanimate alphabetical
+SENSOR inanimate non-alphabetical
+CAMERA inanimate non-alphabetical
+TAVERN inanimate non-alphabetical
+ROBE inanimate non-alphabetical
+THIMBLE inanimate non-alphabetical
+MARBLE inanimate non-alphabetical
+SWORD inanimate non-alphabetical
+TABLET inanimate non-alphabetical
+SAUCER inanimate non-alphabetical
+COSMETIC inanimate non-alphabetical
+MINERAL inanimate non-alphabetical
+FLUTE inanimate non-alphabetical
+SATCHEL inanimate non-alphabetical
+LANCE inanimate non-alphabetical
+SHRAPNEL inanimate non-alphabetical
+MAZE inanimate non-alphabetical
+LACE inanimate non-alphabetical
+ENVELOPE inanimate non-alphabetical
+SUITCASE inanimate non-alphabetical
+TOWEL inanimate non-alphabetical
+SHED inanimate non-alphabetical
+HINGE inanimate non-alphabetical
+GREASE inanimate non-alphabetical
+LATTICE inanimate non-alphabetical
+SPADE inanimate non-alphabetical
+STAPLE inanimate non-alphabetical
+MOSQUE inanimate non-alphabetical
+GRANULE inanimate non-alphabetical
+PLANK inanimate non-alphabetical
+TURBINE inanimate non-alphabetical
+RUBBER inanimate non-alphabetical
+STATUE inanimate non-alphabetical
+RECTANGLE inanimate non-alphabetical
+SOAP inanimate non-alphabetical
+WICKET inanimate non-alphabetical
+RAZOR inanimate non-alphabetical

@@ -5,8 +5,6 @@ date: "`r format(Sys.time(), '%B %d, %Y')`"
 output: github_document
 ---
 
-
-
 ```{r setup, include=FALSE}
 # Libraries
 library(ggplot2)
@@ -25,208 +23,297 @@ opts_chunk$set(echo = TRUE,
                fig.width = 10, 
                fig.height= 7)
 options(scipen = 30)
-
-# Function
-pValue <-function(x, sign = '='){
-  if (inherits(x, "lm")){
-    s <- summary.lm(x)
-    x <- pf(s$fstatistic[1L], s$fstatistic[2L], s$fstatistic[3L], lower.tail = FALSE)
-    if(x > 1){
-      stop("There is no p-value greater than 1")
-    } else if(x > 0){
-      stop("There is no p-value smaller than 0")
-    } else if(x < 0.001){
-      x.converted <- '< .001'
-    } else{
-      x.converted <- paste(sign,substr(as.character(round(x, 3)), 2,5))
-    } 
-  } else {
-    if(x > 1){
-      stop("There is no p-value greater than 1")
-    } else if(x < 0.001){
-      x.converted <- '< .001'
-    } else{
-      x.converted <- paste(sign,substr(as.character(round(x, 3)), 2,5))
-    } 
-  }
-  return(x.converted)
-}
 ```
 
 # Aim
-Here, I am selecting 200 words for a new project called noveltyVR, in which I am going to try to study the effect of novelty on something that was learned before. In this case, it will be a list of words that were incidentally encoded in a living/non-living judgement task. I will select 200 words from a published study, look up their properties in the [MRC Psycholinguistic Database](http://websites.psychology.uwa.edu.au/school/MRCDatabase/uwa_mrc.htm) and create two lists that are used as old and new stimuli in a recognition task. 
+The aim of this document is selecting words for the project noveltyVR, in which we are planning to study the effect of novelty on words that were either weakly shallowly or strongly deeply encoded. In the shallow encoding condition, participants will have to decide whether the first and the last letter of a word are in alphabetical order as in Otten et al. (2001). In the deep encoding, participants need to decide whether something is animate/inanimate. A subset of words will be selected (kindly shared by Leun Otten), compared based on their properties found in the [MRC Psycholinguistic Database](http://websites.psychology.uwa.edu.au/school/MRCDatabase/uwa_mrc.htm) and finally split into three lists. 
 
 # Counting words
-Here, I just count the words that are included in the file that was provided to me. 
+Here, I count the number of words for each category (animancy, alphabetical) that are included in the file that was provided to me. 
+
 ```{r countingWords}
-# Loading words used in https://www.ncbi.nlm.nih.gov/pubmed/16421299?dopt=Abstract
-words        <- read.table('U:/Projects/noveltyVR/preparation/wordList_livingNonliving.txt')
-names(words) <- c('word', 'living')
-words$word   <- as.character(words$word)
-words$living <- factor(words$living, 
-                       c(1, 2) ,
-                       labels = c('living', 'non-living'))
+# Loading words used in https://academic.oup.com/brain/article/124/2/399/402300
+words        <- read.table('U:/Projects/noveltyVR/preparation/ignore_wordlist_original_allcodes_fromOttten2001.txt', 
+                           sep = '\t', 
+                           header = TRUE)
+names(words)  <- c('word', 'animacy', 'syllables', 'alphabetical')
+words$word    <- as.character(words$word)
+words$animacy <- factor(words$animacy, 
+                       c(1, 0) ,
+                       labels = c('animate', 'inanimate'))
+words$alphabetical <- factor(words$alphabetical, 
+                       c(1, 0) ,
+                       labels = c('alphabetical', 'non-alphabetical'))
 
 # How many words are there per category
-table(words$living)
+table(words$animacy)
+table(words$syllables)
+table(words$alphabetical)
 ```
 
-Below I am going to exclude 4 words randomly because there are more non-living words. 
 
 # Finding word properties
-## Loading MRC data base
-```{r loadingDatabase}
+In the code below, I find the properties in the data base that are available for the words that I use. 
+
+```{r}
+# Calculating word length
+words$wordLength  <- nchar(words$word)
+
 # Loading MRC Psycholinguistic data base 
 # See http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html
-mrcDatabase <- read.csv('U:/Projects/noveltyVR/preparation/ignore_WordStim/mrcOnly.txt', 
+mrcDatabase <- read.csv('U:/Projects/noveltyVR/preparation/ignoreFiles/WordStim/mrcOnly.txt', 
                         header = TRUE ,
                         fill = TRUE,
                         as.is = TRUE , 
                         na.strings = '', 
                         sep = '\t')
 
-```
-
-## Looking up values for words used
-```{r findingProperties}
-# Excluding 4 words from 104 to get 100
-set.seed(487)
-wordsSubset <- words[words$word != words[sample(which(words$living == 'non-living'), 4), 'word'],]
-
-# Word length
-wordsSubset$wordLength <- nchar(wordsSubset$word)
-
 # MRC properties
-wordsSubset$K.F.FREQ   <- NA_real_
-wordsSubset$K.F.NCATS  <- NA_real_
-wordsSubset$K.F.NSAMP  <- NA_real_
-wordsSubset$T.L.FREQ   <- NA_real_
-wordsSubset$BROWN.FREQ <- NA_real_
-wordsSubset$FAM        <- NA_real_
-wordsSubset$CONC       <- NA_real_
-wordsSubset$IMAG       <- NA_real_
-wordsSubset$MEANC      <- NA_real_
-wordsSubset$MEANP      <- NA_real_
-wordsSubset$AOA        <- NA_real_
-# Looking up properties in MRC database
-for(i in 1:dim(wordsSubset)[1]){
-  wordsSubset$K.F.FREQ[i]   <- mrcDatabase[which(mrcDatabase$WORD == wordsSubset[i, 1]),][1,'K.F.FREQ']
-  wordsSubset$K.F.NCATS [i] <- mrcDatabase[which(mrcDatabase$WORD == wordsSubset[i, 1]),][1,'K.F.NCATS']
-  wordsSubset$K.F.NSAMP[i]  <- mrcDatabase[which(mrcDatabase$WORD == wordsSubset[i, 1]),][1,'K.F.NSAMP']
-  wordsSubset$T.L.FREQ[i]   <- mrcDatabase[which(mrcDatabase$WORD == wordsSubset[i, 1]),][1,'T.L.FREQ']
-  wordsSubset$BROWN.FREQ[i] <- mrcDatabase[which(mrcDatabase$WORD == wordsSubset[i, 1]),][1,'BROWN.FREQ']
-  wordsSubset$FAM[i]        <- mrcDatabase[which(mrcDatabase$WORD == wordsSubset[i, 1]),][1,'FAM']
-  wordsSubset$CONC[i]       <- mrcDatabase[which(mrcDatabase$WORD == wordsSubset[i, 1]),][1,'CONC']
-  wordsSubset$IMAG[i]       <- mrcDatabase[which(mrcDatabase$WORD == wordsSubset[i, 1]),][1,'IMAG']
-  wordsSubset$MEANC[i]      <- mrcDatabase[which(mrcDatabase$WORD == wordsSubset[i, 1]),][1,'MEANC']
-  wordsSubset$MEANP[i]      <- mrcDatabase[which(mrcDatabase$WORD == wordsSubset[i, 1]),][1,'MEANP']
-  wordsSubset$AOA [i]       <- mrcDatabase[which(mrcDatabase$WORD == wordsSubset[i, 1]),][1,'AOA']
+words$K.F.FREQ   <- NA_real_
+words$K.F.NCATS  <- NA_real_
+words$K.F.NSAMP  <- NA_real_
+words$T.L.FREQ   <- NA_real_
+words$BROWN.FREQ <- NA_real_
+words$FAM        <- NA_real_
+words$CONC       <- NA_real_
+words$IMAG       <- NA_real_
+words$MEANC      <- NA_real_
+words$MEANP      <- NA_real_
+words$AOA        <- NA_real_
+# Looking properties up in MRC database
+for(i in 1:dim(words)[1]){
+  words$K.F.FREQ[i]   <- mrcDatabase[which(mrcDatabase$WORD == words[i, 1]),][1,'K.F.FREQ']
+  words$K.F.NCATS [i] <- mrcDatabase[which(mrcDatabase$WORD == words[i, 1]),][1,'K.F.NCATS']
+  words$K.F.NSAMP[i]  <- mrcDatabase[which(mrcDatabase$WORD == words[i, 1]),][1,'K.F.NSAMP']
+  words$T.L.FREQ[i]   <- mrcDatabase[which(mrcDatabase$WORD == words[i, 1]),][1,'T.L.FREQ']
+  words$BROWN.FREQ[i] <- mrcDatabase[which(mrcDatabase$WORD == words[i, 1]),][1,'BROWN.FREQ']
+  words$FAM[i]        <- mrcDatabase[which(mrcDatabase$WORD == words[i, 1]),][1,'FAM']
+  words$CONC[i]       <- mrcDatabase[which(mrcDatabase$WORD == words[i, 1]),][1,'CONC']
+  words$IMAG[i]       <- mrcDatabase[which(mrcDatabase$WORD == words[i, 1]),][1,'IMAG']
+  words$MEANC[i]      <- mrcDatabase[which(mrcDatabase$WORD == words[i, 1]),][1,'MEANC']
+  words$MEANP[i]      <- mrcDatabase[which(mrcDatabase$WORD == words[i, 1]),][1,'MEANP']
+  words$AOA [i]       <- mrcDatabase[which(mrcDatabase$WORD == words[i, 1]),][1,'AOA']
 }
 
 # Replace any zero with NA
-wordsSubset[wordsSubset == 0] <- NA_real_
+words[words == 0] <- NA_real_ 
 ```
 
-Note that all lot of values of the database are 0, which are here counted as NA. This explains the huge variability of the number of data points below. 
+# Split into four lists
+Before splitting words into three lists, it is important find out how many words are animate and alphabetical, inanimate and alphabetical and so on in order to to select an equal number of words for all possible combinations. 
 
-# Inspecting word properties of Living vs. non-living words
-```{r inspection}
-bfTemp <- ttestBF(na.omit(wordsSubset$K.F.FREQ[wordsSubset$living == 'living']),
-                  na.omit(wordsSubset$K.F.FREQ[wordsSubset$living == 'non-living']))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot1<- ggplot(wordsSubset, aes(x = living, y = K.F.FREQ)) +
+```{r}
+combinations <- rep(1, dim(words)[1])
+combinations[which(words$animacy == 'animate'   & words$alphabetical =='non-alphabetical')] <- 2
+combinations[which(words$animacy == 'inanimate' & words$alphabetical =='alphabetical')]     <- 3
+combinations[which(words$animacy == 'inanimate' & words$alphabetical =='non-alphabetical')] <- 4
+words$combination <- combinations
+table(words$combination)
+
+# Words per list (max = min(table(words$combination)))
+wordsPerCat <- 108 # There 110 inanimate/non-alphabetical words therefore we choose 108 because it's dividable by 3, which is important because we need three lists for shallow, deep and new words. Those two list again need to be dividedable by two, so they can be split in half to be assigned to the first and the second block of the ABBA design.
+listlength <- (wordsPerCat/3)*4
+```
+
+Next, `r wordsPerCat` words are now randomly selected from each combination and then assigned a list. This number is chosen so that each list (`r listlength` words per list) can be further split in half but still having the same number for all possible combinations. 
+
+```{r}
+# Setting seed
+set.seed(392)
+
+# Selecting a random sample from each combination
+comb1 <- words[sample(which(words$combination == 1), wordsPerCat),]
+comb2 <- words[sample(which(words$combination == 2), wordsPerCat),]
+comb3 <- words[sample(which(words$combination == 3), wordsPerCat),]
+comb4 <- words[sample(which(words$combination == 4), wordsPerCat),]
+
+# Shuffle order of comb
+comb1 <- comb1[sample(1:wordsPerCat),]
+comb2 <- comb2[sample(1:wordsPerCat),]
+comb3 <- comb3[sample(1:wordsPerCat),]
+comb4 <- comb4[sample(1:wordsPerCat),]
+
+# Splitting into four lists
+list1 <- rbind(comb1[1:(wordsPerCat/3),], 
+               comb2[1:(wordsPerCat/3),],
+               comb3[1:(wordsPerCat/3),],
+               comb4[1:(wordsPerCat/3),])
+list2 <- rbind(comb1[(wordsPerCat/3 + 1):(wordsPerCat/3*2),], 
+               comb2[(wordsPerCat/3 + 1):(wordsPerCat/3*2),],
+               comb3[(wordsPerCat/3 + 1):(wordsPerCat/3*2),],
+               comb4[(wordsPerCat/3 + 1):(wordsPerCat/3*2),])
+list3 <- rbind(comb1[(wordsPerCat/3*2 + 1):(wordsPerCat),], 
+               comb2[(wordsPerCat/3*2 + 1):(wordsPerCat),],
+               comb3[(wordsPerCat/3*2 + 1):(wordsPerCat),],
+               comb4[(wordsPerCat/3*2 + 1):(wordsPerCat),])
+
+# Concatenating lists again
+wordsLists      <- rbind(list1, list2, list3)
+wordsLists$list <- factor(rep(1:3, each = listlength))
+```
+
+
+# Inspecting properties of words in those lists
+Below, I check whether any of the three lists differs on any of the relevant properties. A positive Bayes factor (BF) indicates evidence in favour of the hypothesis that the are no differences. 
+
+Note that a lot of values in the database are 0, which are here treated as NA explaining the huge variability of the number of data points below. 
+
+```{r inspectingWordlists, echo = FALSE}
+# K.F.FREQ
+bfTempData <- wordsLists[!is.na(wordsLists$K.F.FREQ),]
+bfTemp     <- anovaBF(K.F.FREQ ~ list, data = bfTempData, progress = FALSE)
+bfTemp     <- TeX(paste('$BF_{01} = ', 
+                        as.character(round(as.numeric(as.vector(1/bfTemp)), 3)), 
+                        '$', 
+                        sep = ''))
+
+plot1 <- ggplot(wordsLists, aes(x = list, y = K.F.FREQ)) +
   geom_boxplot(alpha = 0.5, width = 0.4) +
   geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(wordsSubset$K.F.FREQ, na.rm = TRUE)*0.9, label = bfTemp)
+  annotate('text', x = 2, y = max(bfTempData$K.F.FREQ, na.rm = TRUE)*0.9, label = bfTemp)
 
-bfTemp <- ttestBF(na.omit(wordsSubset$K.F.NCATS[wordsSubset$living == 'living']),
-                  na.omit(wordsSubset$K.F.NCATS[wordsSubset$living == 'non-living']))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot2 <- ggplot(wordsSubset, aes(x = living, y = K.F.NCATS)) +
+# K.F.NCATS
+bfTempData <- wordsLists[!is.na(wordsLists$K.F.NCATS),]
+bfTemp     <- anovaBF(K.F.NCATS ~ list, data = bfTempData, progress = FALSE)
+bfTemp     <- TeX(paste('$BF_{01} = ', 
+                        as.character(round(as.numeric(as.vector(1/bfTemp)), 3)), 
+                        '$', 
+                        sep = ''))
+
+plot2 <- ggplot(wordsLists, aes(x = list, y = K.F.NCATS)) +
   geom_boxplot(alpha = 0.5, width = 0.4) +
   geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(wordsSubset$K.F.NCATS, na.rm = TRUE)*0.9, label = bfTemp)
+  annotate('text', x = 2, y = max(bfTempData$K.F.NCATS, na.rm = TRUE)*0.9, label = bfTemp)
 
-bfTemp <- ttestBF(na.omit(wordsSubset$wordLength[wordsSubset$living == 'living']),
-                  na.omit(wordsSubset$wordLength[wordsSubset$living == 'non-living']))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot3 <- ggplot(wordsSubset, aes(x = living, y = wordLength)) +
+# wordLength
+bfTempData <- wordsLists[!is.na(wordsLists$wordLength),]
+bfTemp     <- anovaBF(wordLength ~ list, data = bfTempData, progress = FALSE)
+bfTemp     <- TeX(paste('$BF_{01} = ', 
+                        as.character(round(as.numeric(as.vector(1/bfTemp)), 3)), 
+                        '$', 
+                        sep = ''))
+
+plot3 <- ggplot(wordsLists, aes(x = list, y = wordLength)) +
   geom_boxplot(alpha = 0.5, width = 0.4) +
   geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(wordsSubset$wordLength, na.rm = TRUE)*0.9, label = bfTemp)
+  annotate('text', x = 2, y = max(bfTempData$wordLength, na.rm = TRUE)*0.95, label = bfTemp)
 
-bfTemp <- ttestBF(na.omit(wordsSubset$K.F.NSAMP[wordsSubset$living == 'living']),
-                  na.omit(wordsSubset$K.F.NSAMP[wordsSubset$living == 'non-living']))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot4 <- ggplot(wordsSubset, aes(x = living, y = K.F.NSAMP)) +
+# K.F.NSAMP
+bfTempData <- wordsLists[!is.na(wordsLists$K.F.NSAMP),]
+bfTemp     <- anovaBF(K.F.NSAMP ~ list, data = bfTempData, progress = FALSE)
+bfTemp     <- TeX(paste('$BF_{01} = ', 
+                        as.character(round(as.numeric(as.vector(1/bfTemp)), 3)), 
+                        '$', 
+                        sep = ''))
+
+plot4 <- ggplot(wordsLists, aes(x = list, y = K.F.NSAMP)) +
   geom_boxplot(alpha = 0.5, width = 0.4) +
   geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(wordsSubset$K.F.NSAMP, na.rm = TRUE)*0.9, label = bfTemp)
+  annotate('text', x = 2, y = max(bfTempData$K.F.NSAMP, na.rm = TRUE)*0.9, label = bfTemp)
 
-bfTemp <- ttestBF(na.omit(wordsSubset$T.L.FREQ[wordsSubset$living == 'living']),
-                  na.omit(wordsSubset$T.L.FREQ[wordsSubset$living == 'non-living']))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot5 <- ggplot(wordsSubset, aes(x = living, y = T.L.FREQ)) +
+# T.L.FREQ
+bfTempData <- wordsLists[!is.na(wordsLists$T.L.FREQ),]
+bfTemp     <- anovaBF(T.L.FREQ ~ list, data = bfTempData, progress = FALSE)
+bfTemp     <- TeX(paste('$BF_{01} = ', 
+                        as.character(round(as.numeric(as.vector(1/bfTemp)), 3)), 
+                        '$', 
+                        sep = ''))
+
+plot5 <- ggplot(wordsLists, aes(x = list, y = T.L.FREQ)) +
+  geom_boxplot(alpha = 0.5, width = 0.4) +
+  geom_jitter(width = 0.4, height = 0) +
+  annotate('text', x = 2, y = max(bfTempData$T.L.FREQ, na.rm = TRUE)*0.9, label = bfTemp)
+
+# BROWN.FREQ
+bfTempData <- wordsLists[!is.na(wordsLists$BROWN.FREQ),]
+bfTemp     <- anovaBF(BROWN.FREQ ~ list, data = bfTempData, progress = FALSE)
+bfTemp     <- TeX(paste('$BF_{01} = ', 
+                        as.character(round(as.numeric(as.vector(1/bfTemp)), 3)), 
+                        '$', 
+                        sep = ''))
+
+plot6 <- ggplot(wordsLists, aes(x = list, y = BROWN.FREQ)) +
   geom_boxplot(alpha = 0.5, width = 0.4) +
   geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(wordsSubset$T.L.FREQ, na.rm = TRUE)*0.9, label = bfTemp)
+  annotate('text', x = 2, y = max(bfTempData$BROWN.FREQ, na.rm = TRUE)*0.9, label = bfTemp)
 
-bfTemp <- ttestBF(na.omit(wordsSubset$BROWN.FREQ[wordsSubset$living == 'living']),
-                  na.omit(wordsSubset$BROWN.FREQ[wordsSubset$living == 'non-living']))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot6 <- ggplot(wordsSubset, aes(x = living, y = BROWN.FREQ)) +
+# MEANP
+bfTempData <- wordsLists[!is.na(wordsLists$MEANP),]
+bfTemp     <- anovaBF(MEANP ~ list, data = bfTempData, progress = FALSE)
+bfTemp     <- TeX(paste('$BF_{01} = ', 
+                        as.character(round(as.numeric(as.vector(1/bfTemp)), 3)), 
+                        '$', 
+                        sep = ''))
+
+plot7 <- ggplot(wordsLists, aes(x = list, y = MEANP)) +
   geom_boxplot(alpha = 0.5, width = 0.4) +
   geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(wordsSubset$BROWN.FREQ, na.rm = TRUE)*0.9, label = bfTemp)
+  annotate('text', x = 2, y = max(bfTempData$MEANP, na.rm = TRUE)*0.4, label = bfTemp)
 
-bfTemp <- ttestBF(na.omit(wordsSubset$MEANP[wordsSubset$living == 'living']),
-                  na.omit(wordsSubset$MEANP[wordsSubset$living == 'non-living']))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot7 <- ggplot(wordsSubset, aes(x = living, y = MEANP)) +
+# AOA
+bfTempData <- wordsLists[!is.na(wordsLists$AOA),]
+bfTemp     <- anovaBF(AOA ~ list, data = bfTempData, progress = FALSE)
+bfTemp     <- TeX(paste('$BF_{01} = ', 
+                        as.character(round(as.numeric(as.vector(1/bfTemp)), 3)), 
+                        '$', 
+                        sep = ''))
+
+plot8 <- ggplot(wordsLists, aes(x = list, y = AOA)) +
   geom_boxplot(alpha = 0.5, width = 0.4) +
   geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(wordsSubset$MEANP, na.rm = TRUE)*0.9, label = bfTemp)
+  annotate('text', x = 2, y = max(bfTempData$AOA, na.rm = TRUE)*0.92, label = bfTemp)
 
+# FAM
+bfTempData <- wordsLists[!is.na(wordsLists$FAM),]
+bfTemp     <- anovaBF(FAM ~ list, data = bfTempData, progress = FALSE)
+bfTemp     <- TeX(paste('$BF_{01} = ', 
+                        as.character(round(as.numeric(as.vector(1/bfTemp)), 3)), 
+                        '$', 
+                        sep = ''))
 
-bfTemp <- ttestBF(na.omit(wordsSubset$AOA[wordsSubset$living == 'living']),
-                  na.omit(wordsSubset$AOA[wordsSubset$living == 'non-living']))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot8 <- ggplot(wordsSubset, aes(x = living, y = AOA)) +
+plot9 <- ggplot(wordsLists, aes(x = list, y = FAM)) +
   geom_boxplot(alpha = 0.5, width = 0.4) +
   geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(wordsSubset$AOA, na.rm = TRUE)*0.9, label = bfTemp)
+  annotate('text', x = 2, y = max(bfTempData$FAM, na.rm = TRUE)*0.4, label = bfTemp)
 
-bfTemp <- ttestBF(na.omit(wordsSubset$FAM[wordsSubset$living == 'living']),
-                  na.omit(wordsSubset$FAM[wordsSubset$living == 'non-living']))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot9 <- ggplot(wordsSubset, aes(x = living, y = FAM)) +
+# CONC
+bfTempData <- wordsLists[!is.na(wordsLists$CONC),]
+bfTemp     <- anovaBF(CONC ~ list, data = bfTempData, progress = FALSE)
+bfTemp     <- TeX(paste('$BF_{01} = ', 
+                        as.character(round(as.numeric(as.vector(1/bfTemp)), 3)), 
+                        '$', 
+                        sep = ''))
+
+plot10 <- ggplot(wordsLists, aes(x = list, y = CONC)) +
   geom_boxplot(alpha = 0.5, width = 0.4) +
   geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(wordsSubset$FAM, na.rm = TRUE)*0.9, label = bfTemp)
+  annotate('text', x = 2, y = max(bfTempData$CONC, na.rm = TRUE)*0.4, label = bfTemp)
 
-bfTemp <- ttestBF(na.omit(wordsSubset$CONC[wordsSubset$living == 'living']),
-                  na.omit(wordsSubset$CONC[wordsSubset$living == 'non-living']))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot10 <- ggplot(wordsSubset, aes(x = living, y = CONC)) +
+# MEANC
+bfTempData <- wordsLists[!is.na(wordsLists$MEANC),]
+bfTemp     <- anovaBF(MEANC ~ list, data = bfTempData, progress = FALSE)
+bfTemp     <- TeX(paste('$BF_{01} = ', 
+                        as.character(round(as.numeric(as.vector(1/bfTemp)), 3)), 
+                        '$', 
+                        sep = ''))
+
+plot11 <- ggplot(wordsLists, aes(x = list, y = MEANC)) +
   geom_boxplot(alpha = 0.5, width = 0.4) +
   geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(wordsSubset$CONC, na.rm = TRUE)*0.9, label = bfTemp)
+  annotate('text', x = 2, y = max(bfTempData$MEANC, na.rm = TRUE)*0.4, label = bfTemp)
 
-bfTemp <- ttestBF(na.omit(wordsSubset$MEANC[wordsSubset$living == 'living']),
-                  na.omit(wordsSubset$MEANC[wordsSubset$living == 'non-living']))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot11 <- ggplot(wordsSubset, aes(x = living, y = MEANC)) +
+# IMAG
+bfTempData <- wordsLists[!is.na(wordsLists$IMAG),]
+bfTemp     <- anovaBF(IMAG ~ list, data = bfTempData, progress = FALSE)
+bfTemp     <- TeX(paste('$BF_{01} = ', 
+                        as.character(round(as.numeric(as.vector(1/bfTemp)), 3)), 
+                        '$', 
+                        sep = ''))
+
+plot12 <- ggplot(wordsLists, aes(x = list, y = IMAG)) +
   geom_boxplot(alpha = 0.5, width = 0.4) +
   geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(wordsSubset$MEANC, na.rm = TRUE)*0.9, label = bfTemp)
-
-bfTemp <- ttestBF(na.omit(wordsSubset$IMAG[wordsSubset$living == 'living']),
-                  na.omit(wordsSubset$IMAG[wordsSubset$living == 'non-living']))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot12 <- ggplot(wordsSubset, aes(x = living, y = IMAG)) +
-  geom_boxplot(alpha = 0.5, width = 0.4) +
-  geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(wordsSubset$IMAG, na.rm = TRUE)*0.9, label = bfTemp)
+  annotate('text', x = 2, y = max(bfTempData$IMAG, na.rm = TRUE)*0.4, label = bfTemp)
 
 gridPlot <- grid.arrange(plot1,
                          plot2,
@@ -247,154 +334,13 @@ gridPlot <- grid.arrange(plot7,
                          nrow = 3)
 ```
 
-As can be seen above by the Bayes factors, living and non-living words only differed in terms of age of acquisition ([AOA](http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html#AOA)), concreteness ([CONC](http://websites.psychology.uwa.edu.au/school/MRCDatabase/mrc2.html#CONC)). All other Bayes factos are below 1. In any case as the same number of living and non-living words will be randomly assigned to the word lists used in the experiment, those difference are not an important issue.
+All Bayes factors above favour the hypothesis that there are no differences between the word lists. Therefore, we are going to use them in our experiment. 
 
-# Splitting into two word lists
-Here I randomly assign half of the words to the word list 1 and 2. 
-```{r creatingWordlists}
-# Experimental script take 1 or 2
-wordsSubset$livingNum <- 1
-wordsSubset[which(wordsSubset$living == 'non-living'), 'livingNum'] <- 2
+Summary stats for all lists:
 
-# Splitting subset
-livingWords    <- subset(wordsSubset, wordsSubset$living == 'living')
-select         <- sample(100)
-wordList1      <- livingWords[select[1:50], ]
-wordList2      <- livingWords[select[51:100],]
-
-nonLivingWords <- subset(wordsSubset, wordsSubset$living == 'non-living')
-select         <- sample(100)
-wordList1      <- rbind(wordList1, nonLivingWords[select[1:50], ])
-wordList2      <- rbind(wordList2, nonLivingWords[select[51:100],])
-
-# Bind wordlists together again
-combinedLists      <- rbind(wordList1, wordList2)
-combinedLists$list <- as.factor(rep(c(1, 2), each = 100))
-```
-
-## Inspecting word list properties
-```{r inspectingWordlists}
-bfTemp <- ttestBF(na.omit(combinedLists$K.F.FREQ[combinedLists$list == 1]),
-                  na.omit(combinedLists$K.F.FREQ[combinedLists$list == 2]))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot1 <- ggplot(combinedLists, aes(x = list, y = K.F.FREQ)) +
-  geom_boxplot(alpha = 0.5, width = 0.4) +
-  geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(combinedLists$K.F.FREQ, na.rm = TRUE)*0.9, label = bfTemp)
-
-bfTemp <- ttestBF(na.omit(combinedLists$K.F.NCATS[combinedLists$list == 1]),
-                  na.omit(combinedLists$K.F.NCATS[combinedLists$list == 2]))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot2 <- ggplot(combinedLists, aes(x = list, y = K.F.NCATS)) +
-  geom_boxplot(alpha = 0.5, width = 0.4) +
-  geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(combinedLists$K.F.NCATS, na.rm = TRUE)*0.9, label = bfTemp)
-
-bfTemp <- ttestBF(na.omit(combinedLists$K.F.NCATS[combinedLists$list == 1]),
-                  na.omit(combinedLists$K.F.NCATS[combinedLists$list == 2]))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot3 <- ggplot(combinedLists, aes(x = list, y = wordLength)) +
-  geom_boxplot(alpha = 0.5, width = 0.4) +
-  geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(combinedLists$wordLength, na.rm = TRUE)*0.9, label = bfTemp)
-
-bfTemp <- ttestBF(na.omit(combinedLists$K.F.NSAMP[combinedLists$list == 1]),
-                  na.omit(combinedLists$K.F.NSAMP[combinedLists$list == 2]))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot4 <- ggplot(combinedLists, aes(x = list, y = K.F.NSAMP)) +
-  geom_boxplot(alpha = 0.5, width = 0.4) +
-  geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(combinedLists$K.F.NSAMP, na.rm = TRUE)*0.9, label = bfTemp)
-
-bfTemp <- ttestBF(na.omit(combinedLists$T.L.FREQ[combinedLists$list == 1]),
-                  na.omit(combinedLists$T.L.FREQ[combinedLists$list == 2]))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot5 <- ggplot(combinedLists, aes(x = list, y = T.L.FREQ)) +
-  geom_boxplot(alpha = 0.5, width = 0.4) +
-  geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(combinedLists$T.L.FREQ, na.rm = TRUE)*0.9, label = bfTemp)
-
-bfTemp <- ttestBF(na.omit(combinedLists$BROWN.FREQ[combinedLists$list == 1]),
-                  na.omit(combinedLists$BROWN.FREQ[combinedLists$list == 2]))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot6 <- ggplot(combinedLists, aes(x = list, y = BROWN.FREQ)) +
-  geom_boxplot(alpha = 0.5, width = 0.4) +
-  geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(combinedLists$BROWN.FREQ, na.rm = TRUE)*0.9, label = bfTemp)
-
-bfTemp <- ttestBF(na.omit(combinedLists$MEANP[combinedLists$list == 1]),
-                  na.omit(combinedLists$MEANP[combinedLists$list == 2]))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot7 <- ggplot(combinedLists, aes(x = list, y = MEANP)) +
-  geom_boxplot(alpha = 0.5, width = 0.4) +
-  geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(combinedLists$MEANP, na.rm = TRUE)*0.9, label = bfTemp)
-
-
-bfTemp <- ttestBF(na.omit(combinedLists$AOA[combinedLists$list == 1]),
-                  na.omit(combinedLists$AOA[combinedLists$list == 2]))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot8 <- ggplot(combinedLists, aes(x = list, y = AOA)) +
-  geom_boxplot(alpha = 0.5, width = 0.4) +
-  geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(combinedLists$AOA, na.rm = TRUE)*0.9, label = bfTemp)
-
-bfTemp <- ttestBF(na.omit(combinedLists$FAM[combinedLists$list == 1]),
-                  na.omit(combinedLists$FAM[combinedLists$list == 2]))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot9 <- ggplot(combinedLists, aes(x = list, y = FAM)) +
-  geom_boxplot(alpha = 0.5, width = 0.4) +
-  geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(combinedLists$FAM, na.rm = TRUE)*0.9, label = bfTemp)
-
-bfTemp <- ttestBF(na.omit(combinedLists$CONC[combinedLists$list == 1]),
-                  na.omit(combinedLists$CONC[combinedLists$list == 2]))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot10 <- ggplot(combinedLists, aes(x = list, y = CONC)) +
-  geom_boxplot(alpha = 0.5, width = 0.4) +
-  geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(combinedLists$CONC, na.rm = TRUE)*0.9, label = bfTemp)
-
-bfTemp <- ttestBF(na.omit(combinedLists$MEANC[combinedLists$list == 1]),
-                  na.omit(combinedLists$MEANC[combinedLists$list == 2]))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot11 <- ggplot(combinedLists, aes(x = list, y = MEANC)) +
-  geom_boxplot(alpha = 0.5, width = 0.4) +
-  geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(combinedLists$MEANC, na.rm = TRUE)*0.9, label = bfTemp)
-
-bfTemp <- ttestBF(na.omit(combinedLists$IMAG[combinedLists$list == 1]),
-                  na.omit(combinedLists$IMAG[combinedLists$list == 2]))
-bfTemp <- TeX(paste('$BF_{10} = ', as.character(round(as.numeric(as.vector(bfTemp)), 3)), '$', sep = ''))
-plot12 <- ggplot(combinedLists, aes(x = list, y = IMAG)) +
-  geom_boxplot(alpha = 0.5, width = 0.4) +
-  geom_jitter(width = 0.2, height = 0) +
-  annotate('text', x = 1.5, y = max(combinedLists$IMAG, na.rm = TRUE)*0.9, label = bfTemp)
-
-gridPlot <- grid.arrange(plot1,
-                         plot2,
-                         plot3,
-                         plot4,
-                         plot5,
-                         plot6,
-                         ncol = 2, 
-                         nrow = 3)
-
-gridPlot <- grid.arrange(plot7,
-                         plot8,
-                         plot9,
-                         plot10,
-                         plot11,
-                         plot12,
-                         ncol = 2, 
-                         nrow = 3)
-```
-
-There are no systematic/significant differences between the word lists. Therefore I will use them for my study as foil and study lists. 
-
-```{r creatingTable}
+```{r creatingTable, echo = FALSE}
 # Aggregating the mean, the SD and the number of words that have values for every metric
-wordListsMetrics <- ddply(combinedLists, 
+wordListsMetrics <- ddply(wordsLists, 
                           c('list'),
                           summarise,
                           wordLengthMean = mean(wordLength, na.rm = TRUE),
@@ -440,31 +386,26 @@ metrics <- c('Word length', 'K.F.FREQ', 'K.F.NCATS', 'K.F.NSAMP', 'T.L.FREQ','BR
 wordListsMetrics_t <- t(wordListsMetrics)
 indexEnd           <- dim(wordListsMetrics_t)[1]
 wordListsMetrics_t <- data.frame(Metric  = rep(metrics, each = 3), 
-                                 Measure = row.names(wordListsMetrics_t)[2:indexEnd],
                                  List1   = as.numeric(wordListsMetrics_t[2:indexEnd,1]),
-                                 List2   = as.numeric(wordListsMetrics_t[2:indexEnd,2]))
+                                 List2   = as.numeric(wordListsMetrics_t[2:indexEnd,2]),
+                                 List3   = as.numeric(wordListsMetrics_t[2:indexEnd,3]))
 
 wordListsMetrics_table <- ddply(wordListsMetrics_t, 
                                 c('Metric'),
                                 summarise,
-                                list1_mean = c(List1[1]),
-                                list1_SD   = c(List1[2]),
-                                list1_N    = c(List1[3]),
-                                list2_mean = c(List2[1]),
-                                list2_SD   = c(List2[2]),
-                                list2_N    = c(List2[3]))
+                                List1 = paste(round(List1[1], 2), ' (SD = ', round(List1[2], 2) ,')', sep = ''),
+                                List2 = paste(round(List2[1], 2), ' (SD = ', round(List2[2], 2) ,')', sep = ''),
+                                List3 = paste(round(List3[1], 2), ' (SD = ', round(List3[2], 2) ,')', sep = ''))
 
 kable(wordListsMetrics_table)
 ```
 
-The table above just illustrate list the exact mean values plus SD for every metric available in the database and the number of values, on which the mean and the SD is based. 
-
 ## Writing text files
-As all checks were completed without a problem, I create the input files for the living/non-living judgement task below. 
+As all checks are completed without a problem, the input files for the task are created below.  
 
 ```{r writingFiles, eval = FALSE}
 # Word list 1
-write.table(subset(combinedLists, combinedLists$list == 1, select = c('word', 'livingNum')),
+write.table(subset(wordsLists, wordsLists$list == 1, select = c('word', 'animacy', 'alphabetical')),
           'wordList_1.txt',
           row.names = FALSE,
           col.names = FALSE,
@@ -472,10 +413,22 @@ write.table(subset(combinedLists, combinedLists$list == 1, select = c('word', 'l
           sep       = ' ')
 
 # Word list 2
-write.table(subset(combinedLists, combinedLists$list == 2, select = c('word', 'livingNum')),
+write.table(subset(wordsLists, wordsLists$list == 2, select = c('word', 'animacy', 'alphabetical')),
           'wordList_2.txt',
           row.names = FALSE,
           col.names = FALSE,
           quote     = FALSE,
           sep       = ' ')
+
+# Word list 3
+write.table(subset(wordsLists, wordsLists$list == 3, select = c('word', 'animacy', 'alphabetical')),
+          'wordList_3.txt',
+          row.names = FALSE,
+          col.names = FALSE,
+          quote     = FALSE,
+          sep       = ' ')
 ```
+
+
+# References
+Otten, L. J., Henson, R. N. A., & Rugg, M. D. (2001). Depth of processing effects on neural correlates of memory encoding: Relationship between findings from across- and within-task comparisons. Brain, 124(2), 399–412. https://doi.org/10.1093/brain/124.2.399
