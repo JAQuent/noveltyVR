@@ -22,7 +22,7 @@ datedFileNam <- function(fileName, fileEnding){
 # Create global variables for reuse
 # Sample size, groups and levels
 groups      <- 2
-groupSize   <- 48
+groupSize   <- 36
 nTotal      <- groupSize  * groups
 levels1     <- 2
 levels2     <- 2
@@ -140,10 +140,10 @@ fixed_tTest_between_one_within_two <- function(params){
                        y = diff3,
                        nullInterval = c(-Inf, 0))
   
-    bfs <- c(as.numeric(as.vector(test1[2]/test1[1])), # What's the evidence for a main effect of N?
-             as.numeric(as.vector(test2[2]/test2[1])), # What's the evidence for an interaction between N and E?
-             as.numeric(as.vector(test3[2]/test3[1])), # What's the evidence for an interaction between N and M?
-             as.numeric(as.vector(test4[2]/test4[1]))) # What's the evidence for an interaction between N and E and M?
+    bfs <- c(as.numeric(as.vector(test1[2])), # What's the evidence for a main effect of N?
+             as.numeric(as.vector(test2[2])), # What's the evidence for an interaction between N and E?
+             as.numeric(as.vector(test3[2])), # What's the evidence for an interaction between N and M?
+             as.numeric(as.vector(test4[2]))) # What's the evidence for an interaction between N and E and M?
   
   return(bfs)
 }
