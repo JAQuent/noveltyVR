@@ -22,7 +22,7 @@ datedFileNam <- function(fileName, fileEnding){
 # Create global variables for reuse
 # Sample size, groups and levels
 groups      <- 2
-groupSize   <- 36
+groupSize   <- 48
 nTotal      <- groupSize  * groups
 levels1     <- 2
 levels2     <- 2
