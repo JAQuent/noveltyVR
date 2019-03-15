@@ -1,11 +1,11 @@
 Design analysis for noveltyVR
 ================
-March 11, 2019
+March 15, 2019
 
 Aim of this document
 ====================
 
-The aim of this document is to conduct a design analysis for a fixed N design using one-sided Bayesian t-test. This analysis will inform our choice of N for a registered report. The planned experiment is a 2 x 2 x 2 design with one between- and two within-subject factors. Without going into too much detail, there will be a novelty and a control group (Factor N) and we will examine recollection/familiarity (Factor M) for weakly/strongly learned words (Factor E). We choose directional t-tests over an ANOVA-based approach because it reflects our hypotheses (for more on the deliberations see [here](https://github.com/JAQuent/noveltyVR/blob/master/preparation/designDeliberations.md))
+The aim of this document is to conduct a design analysis for a fixed N design using one-sided Bayesian t-test. This analysis will inform our choice of N for a registered report. The planned experiment is a 2 x 2 x 2 design with one between- and two within-subject factors. Without going into too much detail, there will be a novelty and a control group (Factor N) and we will examine recollection/familiarity (Factor M) for weakly/strongly learned words (Factor E).
 
 Libraries
 =========
@@ -28,7 +28,7 @@ Short description of the simulation
 
 I simulated a fixed N design with 36 participants per group (see Schönbrodt & Wagenmakers, 2018).
 
-For us, four effects are of interest: main effect of novelty (N), interaction of novelty with encoding strength (N x E), interaction of novelty with memory quality (N x M) and lastly the interaction of novelty with encoding strength and memory quality (N x E x M). Theoretically, the most important effect is the interaction between novelty and and encoding strength (weakly/strongly).
+For us, four effects are of interest: main effect of novelty (N) with better memory for the novelty group, interaction of novelty with encoding strength (N x E) where novelty benefits weakly encoded words more, interaction of novelty with memory quality (N x M) where novelty increases recollection and lastly the interaction of novelty with encoding strength and memory quality (N x E x M) where novelty increases recollection for weakly encoded words. Theoretically, the most important effect is the interaction between novelty and and encoding strength (weakly/strongly). We choose directional t-tests over an ANOVA-based approach because our hypotheses are directional (for more on the deliberations see [here](https://github.com/JAQuent/noveltyVR/blob/master/preparation/designDeliberations.md)).
 
 Data under five different hypotheses is simulated:
 
