@@ -1,1 +1,0 @@
-Rating task \n\n Please answer the following questions by rating from -100 (not true at all) to 100 (absolutely true). Move the mouse to move the slider across the scale and press the left mouse button to make your response. \n\n Press spacebar to start.
