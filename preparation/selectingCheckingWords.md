@@ -1,7 +1,7 @@
 Selecting and checking living/non-living words
 ================
-Jörn Alexander Quent
-March 04, 2019
+JÃ¶rn Alexander Quent
+June 17, 2019
 
 Aim
 ===
@@ -223,4 +223,4 @@ write.table(subset(wordsLists, wordsLists$list == 3, select = c('word', 'animacy
 References
 ==========
 
-Otten, L. J., Henson, R. N. A., & Rugg, M. D. (2001). Depth of processing effects on neural correlates of memory encoding: Relationship between findings from across- and within-task comparisons. Brain, 124(2), 399–412. <https://doi.org/10.1093/brain/124.2.399>
+Otten, L. J., Henson, R. N. A., & Rugg, M. D. (2001). Depth of processing effects on neural correlates of memory encoding: Relationship between findings from across- and within-task comparisons. Brain, 124(2), 399â412. <https://doi.org/10.1093/brain/124.2.399>

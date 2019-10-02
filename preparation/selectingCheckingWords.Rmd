@@ -403,7 +403,7 @@ kable(wordListsMetrics_table)
 ## Writing text files
 As all checks are completed without a problem, the input files for the task are created below.  
 
-```{r writingFiles, eval = FALSE}
+```{r writingFiles, eval = TRUE}
 # Word list 1
 write.table(subset(wordsLists, wordsLists$list == 1, select = c('word', 'animacy', 'alphabetical')),
           'wordList_1.txt',
