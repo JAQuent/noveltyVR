@@ -1,0 +1,206 @@
+---
+title: "Power analysis"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      warning = FALSE, 
+                      message = FALSE)
+options(scipen = 1)
+```
+
+# Aim of this document
+The aim of this document is to conduct a power analysis for a fixed N design using one-sided Bayesian t-test. This analysis will inform our choice of N for a registered report. The planned experiment is a 2 x 2 x 2 design with one between- and two within-subject factors. Without going into too much detail, there will be a novelty and a control group (Factor N) and we will examine recollection/familiarity (Factor M) for weakly/strongly learned words (Factor E). For more information on why we choose those tests see [here](https://github.com/JAQuent/noveltyVR/blob/master/preparation/designDeliberations.md).
+
+# Libraries
+```{r}
+library(ggplot2)
+library(reshape2)
+library(plyr)
+library(knitr)
+library(cowplot)
+library(BayesFactor)
+library(assortedRFunctions)
+theme_set(theme_grey()) # Important to retain the ggplot theme
+```
+
+# Effect sizes from previous studies
+```{r}
+# Getting previous effect sizes
+# Get previous cohen's d
+# For instance: From Table 1: Rem/fa Familiar 3% (SD = 4%) and novel 6% (SD = 6%).
+fenker_exp1_immediate_remember <- (6 - 3)/sqrt((6 * 6 + 4 * 4)/2)
+fenker_exp1_delayed_remember   <- (3 - 1)/sqrt((3 * 3 + 1 * 1)/2)
+fenker_exp2_immediate_recall   <- (55 - 45)/sqrt((12 * 12 + 9 * 9)/2)
+
+
+# f = sqr( eta^2 / ( 1 - eta^2 ) ). Thus d = 2*f fits with https://www.psychometrica.de/effect_size.html
+schomaker_recall     <- 2*sqrt(0.16/( 1 - 0.16))
+
+effSizes <- c(fenker_exp1_immediate_remember, 
+              fenker_exp1_delayed_remember, 
+              fenker_exp2_immediate_recall,
+              schomaker_recall)
+
+table1 <- data.frame(Paper       = c(rep('Fenker et al. (2008)', 3), 'Schomaker at al. (2014)'),
+                     Experiment  = c('Exp1', 'Exp1', 'Exp2', ''),
+                     Delay       = c('immediate', 'delayed', 'immediate', 'immediate'),
+                     Type        = c('Rem/fa', 'Rem/fa', 'Recall', 'Recall'),
+                     `Cohen's D` = round(effSizes, 3))
+names(table1) <- c("Paper", "Experiment", "Delay", "Type", "Cohen's D")
+kable(table1)
+
+medianD <- median(effSizes)
+```
+
+We choose the median effect size of `r round(medianD, 3)` as the basis of the power analysis.
+
+# Simulation
+## Short description of the simulation
+I simulated a fixed N design with with various sample sizes (see Schönbrodt & Wagenmakers, 2018). The script with which the simulation was run can be found [here](https://github.com/JAQuent/noveltyVR/blob/master/preparation/powerAnalysis.R).
+
+## Results
+### Preparing the data for analysis
+```{r}
+# Loading data
+load('powerAnalysis_20190921_160007.RData')
+```
+
+The simulation was repeated `r nRuns` times for each sample size. 
+
+```{r}
+
+nLevel <- length(onetailed_H1_agg$n)
+combined_df <- data.frame(Direction = c(rep('one-tailed', nLevel), 
+                               rep('one-tailed', nLevel), 
+                               rep('two-tailed', nLevel),
+                               rep('two-tailed', nLevel)),
+                 Hypothesis = c(rep('H1', nLevel), 
+                                rep('H0', nLevel), 
+                                rep('H1', nLevel),
+                                rep('H0', nLevel)),
+                 n = c(onetailed_H1_agg$n,
+                       onetailed_H0_agg$n,
+                       twotailed_H1_agg$n,
+                       twotailed_H0_agg$n),
+                 BF = c(onetailed_H1_agg$BF10,
+                        onetailed_H0_agg$BF01,
+                        twotailed_H1_agg$BF10,
+                        twotailed_H0_agg$BF01))
+
+ggplot(combined_df, aes(x = n, y = BF, colour = Direction, linetype = Hypothesis)) + 
+  geom_hline(yintercept = 0.8) +
+  geom_line() + 
+  annotate('text', x = 12, y = 0.83, label = '80 %') +
+  labs(x = 'Sample size', 
+       y = 'Power for BF10/BF01 > 6', 
+       title = 'Power analysis for two-sample t-Test') +
+  coord_cartesian(ylim = c(0, 1), xlim = c(10, 40), expand = FALSE)
+```
+
+As can be seen above, both one-tailed as well as two-tailed tests surpass 80% power with around 36 participants for our alternative hypothesis (H1). Therefore we choose this as our sample size. With regard to H0, power is much lower around 25% for one-tailed comparisons and 0% for two-tailed comparisons. The latter is not surprising and shows that an extremely high sample size would be necessary for this. 
+
+### Analysis
+Following Schönbrodt & Wagenmakers (2018), we want to answer the following questions with that design analysis for a sample size of 36 participants per group:
+
+#### 1. What are the expected distributions of obtained evidence?
+```{r}
+# Based on https://www.r-bloggers.com/what-does-a-bayes-factor-feel-like/
+bfs_labels_def <- c('Extreme evidence for H1',
+                    'Very strong evidence for H1',
+                    'Strong evidence for H1',
+                    'Moderate evidence for H1',
+                    'Anecdotal evidence for H1',
+                    'No evidence',
+                    'Anecdotal evidence for H0',
+                    'Moderate evidence for H0',
+                    'Strong evidence for H0',
+                    'Very strong evidence for H0',
+                    'Extreme evidence for H0')
+# Subset
+onetailed_H1_sub <- subset(onetailed_H1, n == 36)
+onetailed_H0_sub <- subset(onetailed_H0, n == 36)
+twotailed_H1_sub <- subset(twotailed_H1, n == 36)
+twotailed_H0_sub <- subset(twotailed_H0, n == 36)
+
+# Labeling Bayes factor based on strength of evidence
+onetailed_H1_sub_labeled <- as.data.frame(table(bayesFactor_labeling(onetailed_H1_sub$BF10)))
+onetailed_H0_sub_labeled <- as.data.frame(table(bayesFactor_labeling(onetailed_H0_sub$BF01)))
+twotailed_H1_sub_labeled <- as.data.frame(table(bayesFactor_labeling(twotailed_H1_sub$BF10)))
+twotailed_H0_sub_labeled <- as.data.frame(table(bayesFactor_labeling(twotailed_H0_sub$BF01)))
+
+
+
+plot1 <- ggplot(onetailed_H1_sub_labeled, aes(x = Var1, y = Freq)) + 
+  geom_bar(stat = 'identity') +
+  labs(x = 'BF10', 
+       y = 'Count',
+       title = 'H1: one-tailed') + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+plot2 <- ggplot(onetailed_H0_sub_labeled, aes(x = Var1, y = Freq)) + 
+  geom_bar(stat = 'identity') +
+  labs(x = 'BF01', 
+       y = 'Count',
+       title = 'H0: one-tailed') + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+plot3 <- ggplot(twotailed_H1_sub_labeled, aes(x = Var1, y = Freq)) + 
+  geom_bar(stat = 'identity') +
+  labs(x = 'BF10', 
+       y = 'Count',
+       title = 'H1: two-tailed') + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+plot4 <- ggplot(twotailed_H0_sub_labeled, aes(x = Var1, y = Freq)) + 
+  geom_bar(stat = 'identity') +
+  labs(x = 'BF01', 
+       y = 'Count',
+       title = 'H0: two-tailed') + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+
+plot_grid(plot1, plot2, plot3, plot4, ncol = 2)
+```
+
+The plots above show the distributions of BFs under different hypotheses for different tests providing more detailed picture than the power plot. This plot for instance reveals that there is no extreme evidence for H0 for two-tailed comparisons. In fact, the highest value for those comparisons is BF01 = `r round(max(twotailed_H0_sub$BF01), 3)`. 
+
+#### 2. What is the probability of obtaining (compelling) misleading evidence?
+```{r}
+table1 <- data.frame(Hypothesis = c('H1', 'H0', 'H1', 'H0'),
+                     Direction  = c('one-tailed', 'one-tailed', 'two-tailed', 'two-tailed'),
+                     Percent = c(onetailed_H1_agg[onetailed_H1_agg$n == 36, 4],
+                                 onetailed_H0_agg[onetailed_H0_agg$n == 36, 4],
+                                 twotailed_H1_agg[twotailed_H1_agg$n == 36, 4],
+                                 twotailed_H0_agg[twotailed_H0_agg$n == 36, 4]))
+
+kable(table1)
+maxMisleading <- round(max(table1$Percent), 4)*100
+```
+
+The probability of obtaining misleading evidence is generally very low. The highest rate is `r maxMisleading`%.
+
+#### 3. Is the  sample size big enough to provide compelling evidence in the right direction with sufficiently high probability? 
+```{r}
+table1 <- data.frame(Hypothesis = c('H1', 'H0', 'H1', 'H0'),
+                     Direction  = c('one-tailed', 'one-tailed', 'two-tailed', 'two-tailed'),
+                     Percent = c(onetailed_H1_agg[onetailed_H1_agg$n == 36, 5],
+                                 onetailed_H0_agg[onetailed_H0_agg$n == 36, 5],
+                                 twotailed_H1_agg[twotailed_H1_agg$n == 36, 5],
+                                 twotailed_H0_agg[twotailed_H0_agg$n == 36, 5]))
+
+kable(table1)
+```
+
+The probability of finding evidence against and in favour of higher memory performance in the novelty group is low  (30 % for one-tailed comparisonss). However, the probability to obtain compelling evidence in favour is high (over 83 %) for both comparisons. 
+
+# Conclusion
+In sum, a sample size of 36 per group is enough to provide compelling evidence in favour of an effect of similar magnitude to the effects reported in the literature. 
+
+# References
+Fenker, D. E., Frey, J. U., Schuetze, H., Heipertz, D., Heinze, H.-J., & Düzel, E. (2008). Novel scenes improve recollection and recall of words. Journal of Cognitive Neuroscience, 20(7), 1250–1265. https://doi.org/10.1162/jocn.2008.20086
+
+Schomaker, J., van Bronkhorst, M. L. V, & Meeter, M. (2014). Exploring a novel environment improves motivation and promotes recall of words. Frontiers in Psychology, 5(AUG), 1–6. https://doi.org/10.3389/fpsyg.2014.00918
+
+Schönbrodt, F. D., & Wagenmakers, E.-J. (2018). Bayes factor design analysis: Planning for compelling evidence. Psychonomic Bulletin & Review, 25(1), 128–142. https://doi.org/10.3758/s13423-017-1230-y
