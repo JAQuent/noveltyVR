@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>CBU Experiment</title>
+	<script src="/study_assets_root/noveltyVR_online/jspsych-6.1.0/jspsych.js"></script>
+	<script src="/study_assets_root/noveltyVR_online/jspsych-6.1.0/plugins/jspsych-html-keyboard-response.js"></script>
+	<script src="/assets/javascripts/jatos.js"></script>
+  <script src="/study_assets_root/noveltyVR_online/jquery-3.3.1.min.js" type="text/javascript"></script>
+</head>
+<body>
+</body>
+<script>
+
+	jatos.onLoad(function() {
+
+		var redirect_url = jatos.componentJsonInput.url;
+		
+		var timeline = [];
+
+		/* End-exp trial */
+		var end_exp_trial = {
+			type: "html-keyboard-response",
+			stimulus: "<div style='float: center; width: 70%; padding-left: 40px'><p align='left'; style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 130%; line-height: 1.5em; text-align: left\"><br>Thank you for taking part. We are conducting this study because we are interested in how our memory differs when we see objects at unexpected and expected locations. We use virtual reality to make this as realistic as possible. Another aim is to examine whether the experience of something novel such as virtual reality itself can influence memory for unrelated information (the words that you learned before the experiment yesterday). Because we did not want you to rehearse the words or employ special strategies, we did not tell you about the memory tests. This is important to test what we call incidental memory. If you have questions or would like more information, please contact:<br><br><i>Researcher:<br>Jörn Alexander Quent, M.Sc.<br>Message via alex.quent@mrc-cbu.cam.ac.uk</i><br><br>Press any key to end the experiment.</p></div>"
+		};
+		timeline.push(end_exp_trial);
+
+		// end study function
+		var end_study_fn = function() {
+			var redirect_fn = function () {return window.location.replace(redirect_url);};
+			jatos.endStudyAjax(true, "Completed_"+ jatos.studySessionData.sub, redirect_fn);
+		};
+
+		jsPsych.init({
+			timeline: timeline,
+			show_preload_progress_bar: false,
+			on_finish: function(){ 
+				jatos.submitResultData('', end_study_fn);
+			}
+		})
+
+	});
+</script>
+</html>

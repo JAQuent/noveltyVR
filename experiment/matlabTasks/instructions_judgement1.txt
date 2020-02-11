@@ -1,0 +1,1 @@
+Judgement task \n\n This task is split into 4 blocks. At the beginning of each block you will get instructions what kind of judgement you're required to make. During each trial you will be presented with one word at a time. Depending on the instructions at beginning of the block, you will need to make one of the following judgements.  \n\n Press space to continue. 

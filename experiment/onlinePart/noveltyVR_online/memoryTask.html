@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>CBU Experiment</title>
+        <script src="jspsych-6.1.0/jspsych.js"></script>
+        <script src="jspsych-6.1.0/plugins/jspsych-html-keyboard-response.js"></script>
+        <script src="jspsych-6.1.0/plugins/jspsych-fullscreen.js"></script>
+        <script src="wordLists.js"></script>
+        <script src="/assets/javascripts/jatos.js"></script>
+        <link href="jspsych-6.1.0/css/jspsych.css" rel="stylesheet" type="text/css"></link>
+    </head>
+    <body></body>
+    <script>
+    jatos.onLoad(function(){
+      ///////////////////////////////////////////////////
+      /* Get subject counter balancing condition*/
+      var sub = jatos.studySessionData.sub;     // subject number
+      var cond = jatos.studySessionData.cond;   // counter balancing
+      var group = jatos.studySessionData.group; // Novelty vs control group
+
+      // Other variables
+      var nTrial = 432; // Total number of trials
+      var nComps = (nTrial*2) + 6; // fixation + task + 2 instructions (because trial index)
+      var est_time = jatos.componentJsonInput.est_time;
+
+      ///////////////////////////////////////////////////
+      /* Get start time and date*/
+      var d = new Date();
+      var year = d.getFullYear();
+      var month = d.getMonth();
+      var day = d.getDate();
+      var hour = d.getHours();
+      var minute = d.getMinutes();
+
+      /* create timeline */
+      var timeline = [];
+
+      ///////////////////////////////////////////////////
+      /* define instruction trial1 */
+      var instructions1 = {
+        type: "html-keyboard-response",
+        stimulus: "<div align=\"center\" style='display: flex; flex-direction: column; margin: auto; flex: 1 1 100%; width: 90%; height: 90%;'><div style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 150%; line-height: 1.5em;\"><p style=\"width: 90%; text-align: justify\">This is a memory task. You will now be presented with the words that you saw yesterday during the experiment. The words will be presented on the screen one-at-a-time, and your task is to tell us whether or not you recognise the word using 1 of 3 response keys.<br><br>Please press the <i><u><strong>‘n’ key</strong></u></i> on your keyboard if you think the word is <i><u><strong>new</strong></i></u> and was NOT among the words you studied yesterday.<br><br>Press the <i><u><strong>‘f’ key</strong></u></i>, if the word feels familiar to you.<br><br>Press the <i><u><strong>‘r’ key</strong></u></i> if you remember the word.<br><br>On the next page, we’ll clarify what we mean by familiar and remember.<br><center>Please press space to continue.</center>",
+        choices: ['space'],
+        post_trial_gap: 2000,
+        on_finish: function(data){
+          jsPsych.setProgressBar((data.trial_index + 1)/(nComps));
+        }
+      };
+      timeline.push(instructions1);
+
+      /* define instruction trial2 */
+      var instructions2 = {
+        type: "html-keyboard-response",
+        stimulus: "<div align=\"center\" style='display: flex; flex-direction: column; margin: auto; flex: 1 1 100%; width: 90%; height: 90%;'><div style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 150%; line-height: 1.5em;\"><p style=\"width: 90%; text-align: justify\">To clarify, the <i><u><strong>‘f’ key</strong></u></i> should be used when you think the word is <strong>FAMILIAR</strong>. This is when you know that you’ve seen the word before, but do not recall the specific detail or instance of it occurring. It is crucial that you only choose ‘f’ for familiar if you do not recall anything specific about encountering that word.<br><br>The <i><u><strong>‘r’ key</strong></u></i> should be used when you <strong>REMEMBER</strong> the word. This is when you recognise the word because you recall something specific about the episode in which you saw it.  For example: you recall when the word was presented (such as, the word was at the beginning); you recall what you thought when this word was presented to you (such as, the word reminded you of something and you now recall this thought or you were surprised to see that word); you specifically recall your response to this word (such as, you recall that you pressed the wrong key); you recall hearing, seeing, feeling or smelling something during the presentation of the word (such as, you heard a noise in the hallway). In all of these cases, you should ‘remember’. Note these are only examples of when you using <i><u><strong>‘r’</strong></u></i> for <strong>REMEMBER</strong>, and you should use this key if you recall anything specific about encountering that word.<br>  This task should be completed in one sitting. Please do not take a break, and do not pause during this task. It will last " + est_time + " minutes.<br><center>Please press space to continue.</center>",
+        choices: ['space'],
+        post_trial_gap: 2000,
+        on_finish: function(data){
+          jsPsych.setProgressBar((data.trial_index + 1)/(nComps));
+        }
+      };
+     timeline.push(instructions2);
+
+     // Feedback trials
+     var feedback1 = {
+        type: "html-keyboard-response",
+        stimulus: "<div align=\"center\" style='display: flex; flex-direction: column; margin: auto; flex: 1 1 100%; width: 90%; height: 90%;'><div style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 150%; line-height: 1.5em;\"><p style=\"width: 90%; text-align: justify\">We now want to ensure you understand the what response key to use and when you should use them so, now would like you to do some examples. Please tell us what response would be appropriate for this type of feeling during the memory test by pressing the appropriate key on your keyboard: <br><br>I think I saw this word, and in fact when I saw it a thought about when I saw my grandmother eat one. The response would be N, F, or R?",
+        choices: ['r', 'f', 'n'],
+        post_trial_gap: 2000,
+        on_finish: function(data){
+          jsPsych.setProgressBar((data.trial_index + 1)/(nComps));
+        }
+      };
+      timeline.push(feedback1);
+
+     var feedback2 = {
+        type: "html-keyboard-response",
+        stimulus: "<div align=\"center\" style='display: flex; flex-direction: column; margin: auto; flex: 1 1 100%; width: 90%; height: 90%;'><div style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 150%; line-height: 1.5em;\"><p style=\"width: 90%; text-align: justify\">Feedback: Correct  is ‘R’ for remember because you remembered what you were thinking when you first saw the word yesterday.<br><center>Please press space to continue.</center>",
+        choices: ['space'],
+        post_trial_gap: 2000,
+        on_finish: function(data){
+          jsPsych.setProgressBar((data.trial_index + 1)/(nComps));
+        }
+      };
+      timeline.push(feedback2);
+
+     var feedback3 = {
+        type: "html-keyboard-response",
+        stimulus: "<div align=\"center\" style='display: flex; flex-direction: column; margin: auto; flex: 1 1 100%; width: 90%; height: 90%;'><div style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 150%; line-height: 1.5em;\"><p style=\"width: 90%; text-align: justify\">I think I saw this word while I was sat at my computer and was wearing the outfit I had on yesterday. The response would be N, F, or R?",
+        choices: ['r', 'f', 'n'],
+        post_trial_gap: 2000,
+        on_finish: function(data){
+          jsPsych.setProgressBar((data.trial_index + 1)/(nComps));
+        }
+      };
+      timeline.push(feedback3);
+
+     var feedback4 = {
+        type: "html-keyboard-response",
+        stimulus: "<div align=\"center\" style='display: flex; flex-direction: column; margin: auto; flex: 1 1 100%; width: 90%; height: 90%;'><div style=\"font-family: 'Open Sans', 'Arial', sans-serif; font-size: 150%; line-height: 1.5em;\"><p style=\"width: 90%; text-align: justify\">Feedback: The correct response is ‘F’ though you remember things about yesterday, there is no specific memory specific episode to that word.<br><center>Please press space to start experiment.</center>",
+        choices: ['space'],
+        post_trial_gap: 2000,
+        on_finish: function(data){
+          jsPsych.setProgressBar((data.trial_index + 1)/(nComps));
+        }
+      };
+      timeline.push(feedback4);
+
+    ///////////////////////////////////////////////////
+    /* Creating timeline variables and trial*/
+    var i;
+    var trialInfo = new Array();
+    for (i = 0; i < nTrial; i++) { // check that
+        trialInfo[i] = {stim: '<div style="font-size:60px;">' + words[cond][i] + '</div>',
+                        data: {worker_id: jatos.workerId, 
+                               subNum: sub,
+                               year: year,
+                               month: month,
+                               day: day,
+                               hour: hour,
+                               minute: minute,
+                                condition: cond,
+                                group: group,
+                                test_part: 'recogTask', 
+                                word: words[cond][i], 
+                                living: living[cond][i], 
+                                alphabetical: alphabetical[cond][i], 
+                                task: task[cond][i], 
+                                block: block[cond][i], 
+                                encodingTrial: encodingTrial[0][i]}}  
+     };
+
+    /* define trial components */
+    var fixation = {
+      type: 'html-keyboard-response',
+      stimulus: '<div style="font-size:60px;">+</div>',
+      choices: jsPsych.NO_KEYS,
+      trial_duration: 500,
+      data: {test_part: 'fixation'}
+    };
+
+    var recogTask = {
+      type: "html-keyboard-response",
+      stimulus: jsPsych.timelineVariable('stim'),
+      stimulus_duration: 1000,
+      choices: ['r', 'f', 'n'],
+      data: jsPsych.timelineVariable('data'),
+      on_finish: function(data){
+        jsPsych.setProgressBar((data.trial_index + 1)/(nComps));
+      }
+    };
+
+    /* define procedure */
+    var trial_procedure = {
+      timeline: [fixation, recogTask],
+      timeline_variables: trialInfo,
+      repetitions: 1,
+      randomize_order: true
+    };
+    timeline.push(trial_procedure);
+
+    // Initialise experiment
+    jsPsych.init({
+        timeline: timeline,
+        show_progress_bar: true,
+        auto_update_progress_bar: false,
+        on_finish: function(){
+            jatos.submitResultData(jsPsych.data.get().csv(), function(){jatos.startNextComponent()});
+        }
+    });
+  }); 
+  </script>
+</html>

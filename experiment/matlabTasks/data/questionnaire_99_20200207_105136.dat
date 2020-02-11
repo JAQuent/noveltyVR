@@ -1,0 +1,18 @@
+Var1,Var2,Var3,Var4,Var5,Var6,Var7,Var8,Var9,Var10,results1,results2,results3,results4,results5
+1,s62,G1,sense of being there,PRES,"In the computer generated world I had a sense of ""being there"".",not at all,,very much,"Slater & Usoh (1994)",99,20200207,105136,-0.260416666666667,158.738030586392
+2,s44,SP1,sense of VE behind,SP,"Somehow I felt that the virtual world surrounded me.",fully disagree,,fully agree,"IPQ",99,20200207,105136,88.0208333333333,9283.9477697853
+3,s30,SP2,only pictures,SP,"I felt like I was just perceiving pictures.",fully disagree,,fully agree,"IPQ",99,20200207,105136,-100,10091.5692159906
+4,s28,SP3,not sense of being in v. space,SP,"I did not feel present in the virtual space.",did not feel,,felt present,"???",99,20200207,105136,78.6458333333333,14574.7834278736
+5,s31,SP4,sense of acting in VE,SP,"I had a sense of acting in the virtual space, rather than operating something from outside.",fully disagree,,fully agree,"IPQ",99,20200207,105136,-73.4375,7171.69510130771
+6,s33,SP5,sense of being present in VE,SP,"I felt present in the virtual space.",fully disagree,,fully agree,"IPQ",99,20200207,105136,-76.0416666666667,28569.9293185025
+7,s64,INV1,awareness of real env.,INV,"How aware were you of the real world surrounding while navigating in the virtual world? (i.e. sounds, room temperature, other people, etc.)?",extremely aware,moderately aware,not aware at all,"Witmer & Singer (1994)",99,20200207,105136,-33.3333333333333,23147.4832990207
+8,s37,INV2,not aware of real env.,INV,"I was not aware of my real environment.",fully disagree,,fully agree,"IPQ",99,20200207,105136,-45.8333333333333,13775.1548755914
+9,s40,INV3,no attention to real env.,INV,"I still paid attention to the real environment.",fully disagree,,fully agree,"IPQ",99,20200207,105136,-40.8854166666667,15987.1996829752
+10,s38,INV4,attention captivated by VE,INV,"I was completely captivated by the virtual world.",fully disagree,,fully agree,"IPQ",99,20200207,105136,38.0208333333333,28519.9437418487
+11,s48,REAL1,VE real (real/not real),REAL,"How real did the virtual world seem to you?",completely real,,not real at all,"Hendrix (1994)",99,20200207,105136,55.7291666666667,19063.4156914894
+12,s7,REAL2,experience similar to real env.,REAL,"How much did your experience in the virtual environment seem consistent with your real world experience?",not consistent,moderately consistent,very consistent,"Witmer & Singer (1994)",99,20200207,105136,-40.1041666666667,16663.2964101154
+13,s59,REAL3,VE real (imagined/real),REAL,"How real did the virtual world seem to you? ",about as real as\nan imagined world,,indistinguishable\nfrom the real world,"Carlin, Hoffman, & Weghorst (1997)",99,20200207,105136,-15.625,14020.0301574077
+14,s47,REAL4,VE wirklich,REAL,"The virtual world seemed more realistic than the real world.",fully disagree,,fully agree,"IPQ",99,20200207,105136,35.15625,14355.8049737476
+15,na,na,novelty,na,"This experience was novel.",fully disagree,,fully agree,"noveltyVR",99,20200207,105136,43.2291666666667,7262.66729272902
+16,na,na,exciting,na,"This experience was exciting.",fully disagree,,fully agree,"noveltyVR",99,20200207,105136,-20.5729166666667,4468.64724624902
+17,na,na,uncomfortable,na,"This experiences was uncomfortable.",fully disagree,,fully agree,"noveltyVR",99,20200207,105136,-29.9479166666667,8009.64607368223

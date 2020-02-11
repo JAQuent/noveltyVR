@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>CBU Experiment</title>
+  <script src="/study_assets_root/noveltyVR_online/jquery-3.3.1.min.js" type="text/javascript"></script>
+  <script src="/assets/javascripts/jatos.js"></script>
+</head>
+<body>
+  <div align="center" style="display: flex; flex-direction: column; margin: auto; flex: 1 1 100%; width: 90%; height: 90%;">
+  <div id="main_div" style="font-family: 'Open Sans', 'Arial', sans-serif; font-size: 150%; line-height: 1.2em;">
+  </div>
+  </div>
+</body>
+<script>
+    jatos.onLoad(function() {
+      // Creating result_data
+      var result_data = {};
+      result_data.worker_id = jatos.workerId; 
+
+      // Example URLs
+      //http://127.0.0.1:9000/publix/97/start?sub=1&group=1&cond=0&batchId=129&generalMultiple
+
+      // Access url parameters
+      var sub   = jatos.urlQueryParameters.sub;
+      var group = jatos.urlQueryParameters.group;
+      var cond  = jatos.urlQueryParameters.cond;
+
+      // Either parse arguments or set errorMsgDisplay = true;
+      errorMsgDisplay = false;
+      if(typeof sub != 'undefined'){
+        if(typeof group != 'undefined'){
+          if(typeof cond != 'undefined'){
+            // Write to studySessionData
+            jatos.studySessionData.sub   = sub;
+            jatos.studySessionData.group = group;
+            jatos.studySessionData.cond  = cond;
+
+            // Write to reesults data
+            result_data.sub   = sub;
+            result_data.group = group;
+            result_data.cond  = cond;
+
+            // Submit
+            jatos.addJatosIds(result_data);
+            jatos.submitResultData("[" + JSON.stringify(result_data) + "]", jatos.startNextComponent);
+
+          } else {
+            errorMsgDisplay = true;
+          }
+        } else {
+          errorMsgDisplay = true;
+        }
+      } else {
+        errorMsgDisplay = true;
+      };
+
+      // Display error message if needed
+      if(errorMsgDisplay){
+        console.log('Error due to problems with URL.');
+        // Display error messsage
+        $("#main_div").html("<br><br><br><p style=\"font-family: 'Open Sans', 'Arial', sans-serif; line-height: 1.6em; vertical-align:middle\">There seem to be a problem with the URL. Please contact me (alex.quent@mrc-cbu.cam.ac.uk) as soon as possible and send me the link that you used from the address bar.");
+      };
+    });
+</script>

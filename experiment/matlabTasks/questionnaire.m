@@ -78,6 +78,7 @@ try
     else
         screenNum        = 0;
     end
+    
     % Relevant key codes
     KbName('UnifyKeyNames');
     space  = KbName('space');
@@ -109,6 +110,10 @@ try
             end
         end
     end
+    
+    % Text settings
+    Screen('TextFont', myScreen, 'DejaVu'); % Sets normal font
+    Screen('TextSize', myScreen, textSize(1)); % Sets size to normal
 
 %% Experimental loop
     for trial = 1:nTrial
