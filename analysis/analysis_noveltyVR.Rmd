@@ -1,0 +1,604 @@
+---
+title: "Analysis of noveltyVR"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+# Aims
+This document checks whether the data is saved correctly and will be useable. For this, I did the task myself.
+
+1. Can all analyses be done that are included in the manuscript?
+2. Is the counterbalancing (e.g. selection of words) the for both tasks?
+
+
+# Libraries used
+```{r}
+library(plyr)
+library(MPTinR)
+library(matrixTests)
+library(reshape2)
+library(knitr)
+library(chron)
+library(ggplot2)
+library(MRColour)
+library(cowplot)
+library(BayesFactor)
+theme_set(theme_grey())
+```
+
+Important things:
+Calculate time difference between encoding and recognition
+
+# Condition
+```{r}
+# Variables
+nBlock         <- 72
+listLength     <- 144
+conditions     <- 0:11
+t1             <- 'alphabetical'
+t2             <- 'living'
+conditionTable <- data.frame(condition = conditions,
+                             list1 = c(1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3),
+                             list2 = c(2, 3, 1, 3, 1, 2, 2, 3, 1, 3, 1, 2),
+                             list3 = c(3, 2, 3, 1, 2, 1, 3, 2, 3, 1, 2, 1),
+                             aTask = c(rep(t1, 6), rep(t2, 6)),
+                             bTask = c(rep(t2, 6), rep(t1, 6)))
+
+conditionTable$aTask <- as.character(conditionTable$aTask)
+conditionTable$bTask <- as.character(conditionTable$bTask)
+
+# Note that the col list1, list2 and list3 do not refer to the actual word lists wordList1.txt etc but only 
+# to the 1st, 2nd and 3rd list. They col contains which actuall wordList is assign to that spot. This might be confusing as in the recallSheet list1 etc refer to the wordLists
+```
+
+
+## Loading data
+### Encoding task
+```{r}
+folderLocation  <- 'U:/Projects/noveltyVR/data/ignore_rawData/judgement/'
+allFiles        <- paste0(folderLocation, list.files(folderLocation))
+
+encodData <- do.call(rbind, lapply(allFiles, function(x) read.table(x, stringsAsFactors = FALSE, header = TRUE)))
+```
+
+Is there a reaction time and accuracy difference?
+```{r}
+# Invert accuracy for 1, 2, 73, 5
+bool     <- encodData$subNum == 1 | encodData$subNum == 2 | encodData$subNum == 73 | encodData$subNum == 5
+tempData <- encodData[bool, 'acc']
+acc      <- rep(NA, length(tempData))
+acc[tempData == 0]     <- 1
+acc[tempData == 1]     <- 0
+encodData[bool, 'acc'] <- acc
+
+# Aggregate
+encodData_agg <- ddply(encodData,
+                       c('subNum', 'group', 'counterBalancing', 'task'),
+                       summarise, 
+                       rt = mean(RT, na.rm = TRUE), 
+                       acc = mean(acc, na.rm = TRUE))
+
+# Plot
+rtPlot <- ggplot(encodData_agg, aes(x = task, y = rt, colour = task)) + 
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'RT by task', y = 'RT in msec', x = 'Task') +
+  scale_color_mrc(palette = 'primary') +
+  theme(legend.position = 'none')
+
+accPlot <- ggplot(encodData_agg, aes(x = task, y = acc, colour = task)) + 
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'Accuracy by task', y = 'Accuracy', x = 'Task') +
+  scale_color_mrc(palette = 'primary') +
+  theme(legend.position = 'none')
+
+plot_grid(rtPlot, accPlot)
+```
+
+Note that for the first participant, the responses were not saved correctly and have to be inverted. 
+
+```{r}
+rtTest <- ttestBF(encodData_agg$rt[encodData_agg$task == 'living'], 
+                  encodData_agg$rt[encodData_agg$task == 'alphabetical'], 
+                  paired = TRUE)
+
+acTest <- ttestBF(encodData_agg$acc[encodData_agg$task == 'living'],
+                  encodData_agg$acc[encodData_agg$task == 'alphabetical'], 
+                  paired = TRUE)
+
+rtTest <- round(as.numeric(as.vector(rtTest)))
+acTest <- round(1/as.numeric(as.vector(acTest)), 2)
+```
+
+There is strong evidence that RT are faster in the living condition (BF10 = `r rtTest`), however there is also evidence that accuracy does not differ between the condition (BF01 = `r acTest`). 
+
+### Recognition task
+```{r}
+# Look for all files in that folder and load them.
+folderLocation  <- 'U:/Projects/noveltyVR/data/ignore_rawData/recognition/'
+allFiles        <- paste0(folderLocation, list.files(folderLocation))
+
+recogData <- do.call(rbind, lapply(allFiles, function(x) read.csv(x, stringsAsFactors = FALSE)))
+```
+
+
+
+```{r}
+# Prepare the data for analysis.
+# Correct subNum
+recogData$subNum[recogData$subNum == 3] <- 73
+
+# Only the test_part recogTask is relevant. 
+recogData <- subset(recogData, test_part == 'recogTask')
+
+# Recode variables (1 means studied)
+studied  <- rep(1, dim(recogData)[1])
+studied[recogData$task == 'unstudied'] <- 0
+recogData$studied <- factor(studied, levels = c(0, 1), c('unstudied', 'studied'))
+
+# Response r= 82, n = 78, f = 70
+response <- rep(NA, dim(recogData)[1])
+response[recogData$key_press == 82] <- 'r'
+response[recogData$key_press == 78] <- 'n'
+response[recogData$key_press == 70] <- 'f'
+recogData$response <- response
+
+# Calculate accuracy
+acc  <- rep(NA, dim(recogData)[1])
+acc[studied == 1 & (response == 'r' | response == 'f')] <- 1
+acc[studied == 0 & (response == 'n')] <- 1
+acc[studied == 1 & (response == 'n')] <- 0
+acc[studied == 0 & (response == 'r' | response == 'f')] <- 0
+recogData$acc <- acc
+
+# Split data into two each encoding task
+recogData_alpha  <- subset(recogData, task == 'alphabetical' | task == 'unstudied')
+recogData_living <- subset(recogData, task == 'living' | task == 'unstudied')
+```
+
+
+Are there RT difference between RFN?
+```{r}
+recogData$rt <- as.numeric(recogData$rt)
+recogData_rt <- ddply(recogData, c('subNum', 'response'), summarise, RT = mean(rt))
+
+ggplot(recogData_rt, aes(x = response, y = RT, colour = response)) + 
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'RT by recognition response', y = 'RT in msec', x = 'Recognition response') +
+  scale_color_mrc(palette = 'primary') +
+  theme(legend.position = 'none')
+
+
+recogData_rt$response <- as.factor(recogData_rt$response)
+recogData_rt$subNum <- as.factor(recogData_rt$subNum)
+
+rfnTest <- anovaBF(RT ~ response + subNum, data = recogData_rt, whichRandom = "subNum", progress = FALSE)
+rfnTest <-round(as.numeric(as.vector(rfnTest)))
+```
+
+This compairson showed a main effect of recognition type (BF10 = `r rfnTest`).
+
+Run MTP analysis
+```{r}
+recogData_alpha_agg <- ddply(recogData_alpha, c('subNum', 'group', 'condition'),
+                             summarise, 
+                             studiedRemebered = sum(studied == 'studied'   & response == 'r'),
+                             studiedFamiliar  = sum(studied == 'studied'   & response == 'f'),
+                             studiedNew       = sum(studied == 'studied'   & response == 'n'),
+                             newRemebered     = sum(studied == 'unstudied' & response == 'r'),
+                             newFamiliar      = sum(studied == 'unstudied' & response == 'f'),
+                             newNew           = sum(studied == 'unstudied' & response == 'n'))
+
+fit_alpha            <- fit.mpt(recogData_alpha_agg[, 4:9], "MPT_RKN.model", n.optim = 50)
+fit_alpha_individual <- fit_alpha$parameters$individual
+fit_alpha_individual <- as.data.frame(t(fit_alpha_individual[,1,]))
+
+recogData_living_agg <- ddply(recogData_living, c('subNum', 'group', 'condition'),
+                              summarise,
+                              studiedRemebered = sum(studied == 'studied'   & response == 'r'),
+                              studiedFamiliar  = sum(studied == 'studied'   & response == 'f'),
+                              studiedNew       = sum(studied == 'studied'   & response == 'n'),
+                              newRemebered     = sum(studied == 'unstudied' & response == 'r'),
+                              newFamiliar      = sum(studied == 'unstudied' & response == 'f'),
+                              newNew           = sum(studied == 'unstudied' & response == 'n'))
+
+fit_living            <- fit.mpt(recogData_living_agg[, 4:9], "MPT_RKN.model", n.optim = 50)
+fit_living_individual <- fit_living$parameters$individual
+fit_living_individual <- as.data.frame(t(fit_living_individual[,1,]))
+```
+
+Combining everything into one data frame
+
+```{r}
+participants <- unique(recogData$subNum)
+
+row.names(fit_alpha_individual)  <- NULL
+row.names(fit_living_individual) <- NULL
+
+mainData_wide            <- rbind(fit_alpha_individual, fit_living_individual)
+mainData_wide$subNum     <- rep(recogData_living_agg$subNum, 2)
+mainData_wide$group      <- rep(recogData_living_agg$group, 2)
+mainData_wide$encodTask  <- c(rep('alphabetical', length(participants)), rep('living', length(participants)))
+
+# Reshape from wide to long
+mainData <- melt(mainData_wide, id.vars = c("subNum", "group", "encodTask"))
+
+# Exclude gr and gf
+names(mainData)[4] <- 'parameter'
+mainData           <- subset(mainData, parameter != 'gf' & parameter != 'gr')
+
+
+# Make group factor
+mainData$group <- factor(mainData$group, level = 1:2, labels = c('Novelty', 'Control'))
+
+# Arcsine transformation
+mainData$trans_value <- asin((mainData$value*2)-1)
+
+# Level of processing effect
+hypo0 <- ddply(mainData, c('subNum', 'encodTask'), summarise, trans_value = mean(trans_value))
+ggplot(hypo0, aes(x = encodTask, y = trans_value, colour = encodTask)) + 
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'Level of processing effect', y = 'Transformed probability estimate', x = 'Group') +
+  scale_color_mrc(palette = 'primary')
+
+# Hypohesis 1.2
+hypo1.2 <- ddply(mainData, c('subNum', 'group'), summarise, trans_value = mean(trans_value))
+ggplot(hypo1.2, aes(x = group, y = trans_value, colour = group)) + 
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'Hypothesis 1.2', y = 'Transformed probability estimate', x = 'Group') +
+  scale_color_mrc(palette = 'primary')
+
+# Hypothesis 2.2
+hypo2.2 <- ddply(mainData, c('subNum', 'group', 'encodTask'), summarise, trans_value = mean(trans_value))
+ggplot(hypo2.2, aes(x = encodTask, y = trans_value, colour = group)) + 
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'Hypothesis 2.2', y = 'Transformed probability estimate', x = 'Encoding task') +
+  scale_color_mrc(palette = 'primary')
+
+# Hypothesis 3
+hypo3 <- ddply(mainData, c('subNum', 'group', 'parameter'), summarise, trans_value = mean(trans_value))
+ggplot(hypo3, aes(x = parameter, y = trans_value, colour = group)) + 
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'Hypothesis 3', y = 'Transformed probability estimate', x = 'Encoding task') +
+  scale_color_mrc(palette = 'primary')
+
+# Hypothesis 4
+hypo4 <- mainData
+ggplot(hypo4, aes(x = encodTask, y = trans_value, colour = group)) + 
+  facet_grid(.~parameter) +
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'Hypothesis 4', y = 'Transformed probability estimate', x = 'Encoding task') +
+  scale_color_mrc(palette = 'primary')
+```
+
+#### Calculate time in hours between starts of encoding and recognition tasks
+```{r}
+# Format: "2020-01-27 13:45:57"
+# Convert data and time for encoding task
+encod_startTime      <- strptime(x = paste(encodData$date, encodData$time), format = "%Y%m%d %H%M%S")
+encodData$startTime  <- as.character(encod_startTime)
+
+# Get times sorted for participants
+encodData_times <- ddply(encodData, 
+                         c('subNum', 'group', 'counterBalancing'), 
+                         summarise, encodTime = startTime[1])
+
+# Combine recog to 1 string
+recog_startTime <- paste0(recogData$year, 
+                          '-', 
+                          recogData$month + 1, 
+                          '-',
+                          recogData$day, 
+                          ' ',
+                          recogData$hour,
+                          ':',
+                          recogData$minute)
+recogData$startTime <- recog_startTime
+
+# Get times sorted for participants
+recogData_times <- ddply(recogData, 
+                         c('subNum', 'group', 'condition'), 
+                         summarise, recogTime = startTime[1])
+
+# Combine to one data frame
+times           <- recogData_times
+times$encodTime <- encodData_times$encodTime[encodData_times$subNum %in% recogData_times$subNum]
+times$diff      <- as.numeric(difftime(times$recogTime, times$encodTime, units = 'hours'))
+kable(times)
+```
+
+### Recall data
+```{r}
+recallSheet <- read.csv('U:/Projects/noveltyVR/data/ignore_rawData/recallData.csv')
+
+# Assign correct conditions to list 1, 2 and 3
+recallData <- data.frame(subNum    = rep(recallSheet$subNum, each = 2),
+                         group     = rep(recallSheet$group, each = 2),
+                         condition = rep(recallSheet$condition, each = 2),
+                         encodTask = rep(c('alphabetical', 'living'), dim(recallSheet)[1]),
+                         recalled  = rep(NA_integer_,  dim(recallSheet)[1]*2))
+
+# Loop through recallSheet
+for(i in 1:dim(recallSheet)[1]){
+  # Parse condition from conditioonTable and save in tempCond
+  tempCond <- conditionTable[which(recallSheet$condition[i] == conditionTable$condition), ]
+  
+  # Values from 1st and 2nd list
+  val1 <- recallSheet[i, paste0('list', tempCond$list1)]
+  val2 <- recallSheet[i, paste0('list', tempCond$list2)]
+  
+  # Assign to recallData according to the aTask
+  if(tempCond$aTask == 'alphabetical'){
+    recallData[recallData$subNum == recallSheet$subNum[i] & recallData$encodTask == 'alphabetical', 5] <- val1
+    recallData[recallData$subNum == recallSheet$subNum[i] & recallData$encodTask == 'living', 5]       <- val2
+  } else {
+    recallData[recallData$subNum == recallSheet$subNum[i] & recallData$encodTask == 'alphabetical', 5] <- val2
+    recallData[recallData$subNum == recallSheet$subNum[i] & recallData$encodTask == 'living', 5]       <- val1
+  }
+}
+
+# Make factor
+recallData$group <- factor(recallData$group, level = 1:2, labels = c('Novelty', 'Control'))
+
+# Hypothesis 1.1
+hypo1.1 <- ddply(recallData, c('subNum', 'group'), summarise, recalled = sum(recalled))
+
+hypo2.1 <- recallData
+ggplot(hypo2.1, aes(x = encodTask, y = recalled, colour = group)) + 
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'Hypothesis 2.1', y = 'Number of words recalled', x = 'Encoding task') +
+  scale_color_mrc(palette = 'primary')
+```
+
+### Hypothesis summary
+```{r}
+# Create dataframe
+results <- data.frame(Hypothesis = c('1.1', '1.2', '2.1', '2.2', '3', '4'),
+                       BF10 = rep(NA, 6),
+                       BF01 = rep(NA, 6))
+# Hypothesis 1.1
+test1.1 <- ttestBF(x = hypo1.1$recalled[hypo1.1$group == 'Novelty'],
+                   y = hypo1.1$recalled[hypo1.1$group == 'Control'],
+                   nullInterval = c(-Inf, 0))
+
+results[1, 2] <- as.numeric(as.vector(test1.1[2]))
+results[1, 3] <- 1/as.numeric(as.vector(test1.1[2]))
+
+# Hypothesis 1.2
+test1.2 <- ttestBF(x = hypo1.2$trans_value[hypo1.2$group == 'Novelty'],
+                   y = hypo1.2$trans_value[hypo1.2$group == 'Control'],
+                   nullInterval = c(-Inf, 0))
+
+results[2, 2] <- as.numeric(as.vector(test1.2[2]))
+results[2, 3] <- 1/as.numeric(as.vector(test1.2[2]))
+
+# Hypothesis 2.1
+diff2.1.1 <- hypo2.1[hypo2.1$group == 'Control' & hypo2.1$encodTask == 'living', 'recalled'] - 
+             hypo2.1[hypo2.1$group == 'Control' & hypo2.1$encodTask == 'alphabetical', 'recalled']
+
+diff2.1.2 <- hypo2.1[hypo2.1$group == 'Novelty' & hypo2.1$encodTask == 'living', 'recalled'] - 
+             hypo2.1[hypo2.1$group == 'Novelty' & hypo2.1$encodTask == 'alphabetical', 'recalled']
+test2.1   <- ttestBF(x = diff2.1.1,
+                     y = diff2.1.2,
+                     nullInterval = c(-Inf, 0))
+
+# Plot differnce
+df_diff2.1 <- data.frame(group = c(rep('Control', length(diff2.1.1)), rep('Novelty', length(diff2.1.2))),
+                         value = c(diff2.1.1, diff2.1.2))
+
+results[3, 2] <- as.numeric(as.vector(test2.1[2]))
+results[3, 3] <- 1/as.numeric(as.vector(test2.1[2]))
+
+# Hypothesis 2.2
+diff2.2.1 <- hypo2.2[hypo2.2$group == 'Control' & hypo2.2$encodTask == 'living', 'trans_value'] - 
+             hypo2.2[hypo2.2$group == 'Control' & hypo2.2$encodTask == 'alphabetical', 'trans_value']
+
+diff2.2.2 <- hypo2.2[hypo2.2$group == 'Novelty' & hypo2.2$encodTask == 'living', 'trans_value'] - 
+             hypo2.2[hypo2.2$group == 'Novelty' & hypo2.2$encodTask == 'alphabetical', 'trans_value']
+test2.2   <- ttestBF(x = diff2.2.1,
+                     y = diff2.2.2,
+                     nullInterval = c(-Inf, 0))
+
+results[4, 2] <- as.numeric(as.vector(test2.2[2]))
+results[4, 3] <- 1/as.numeric(as.vector(test2.2[2]))
+
+# Plot differnce
+df_diff2.2 <- data.frame(group = c(rep('Control', length(diff2.2.1)), rep('Novelty', length(diff2.2.2))),
+                         value = c(diff2.2.1, diff2.2.2))
+
+
+# Hypothesis 3
+diff3.1     <- hypo3[hypo3$group == 'Control' & hypo3$parameter == 'r', 'trans_value'] - 
+               hypo3[hypo3$group == 'Control' & hypo3$parameter == 'f', 'trans_value']
+diff3.2     <- hypo3[hypo3$group == 'Novelty' & hypo3$parameter == 'r', 'trans_value'] - 
+               hypo3[hypo3$group == 'Novelty' & hypo3$parameter == 'f', 'trans_value']
+test3     <- ttestBF(x = diff3.1,
+                     y = diff3.2)
+
+results[5, 2] <- as.numeric(as.vector(test3))
+results[5, 3] <- 1/as.numeric(as.vector(test3))
+
+
+# Plot differnce
+df_diff3 <- data.frame(group = c(rep('Control', length(diff3.1)), rep('Novelty', length(diff3.2))),
+                         value = c(diff3.1, diff3.2))
+
+# Hypothesis 4
+row.names(mainData) <- as.character(1:dim(mainData)[1])
+# (E1M1 – E2M1)
+diff4.1 <- mainData[mainData$group == 'Control' & mainData$encodTask == 'living' & mainData$parameter == 'f', 'trans_value'] - 
+           mainData[mainData$group == 'Control' & mainData$encodTask == 'alphabetical' & mainData$parameter == 'f', 'trans_value']
+# (E1M2 – E2M2)
+diff4.2 <- mainData[mainData$group == 'Control' & mainData$encodTask == 'living' & mainData$parameter == 'r', 'trans_value'] - 
+           mainData[mainData$group == 'Control' & mainData$encodTask == 'alphabetical' & mainData$parameter == 'r', 'trans_value']
+
+# Difference of differences (E1M1 – E2M1) – (E1M2 – E2M2)
+diff4.3     <- diff4.1 - diff4.2
+
+# Group 2
+# (E1M1 – E2M1)
+diff4.4 <- mainData[mainData$group == 'Novelty' & mainData$encodTask =='living' & mainData$parameter == 'f', 'trans_value'] - 
+           mainData[mainData$group == 'Novelty' & mainData$encodTask == 'alphabetical' & mainData$parameter == 'f', 'trans_value']
+# (E1M2 – E2M2)
+diff4.5 <- mainData[mainData$group == 'Novelty' & mainData$encodTask == 'living' & mainData$parameter == 'r', 'trans_value'] - 
+           mainData[mainData$group == 'Novelty' & mainData$encodTask == 'alphabetical' & mainData$parameter == 'r', 'trans_value']
+# Difference of differences (E1M1 – E2M1) – (E1M2 – E2M2)
+diff4.7     <- diff4.4 - diff4.5
+
+# Test
+test4     <- ttestBF(x = diff4.3,
+                     y = diff4.7)
+
+results[6, 2] <- as.numeric(as.vector(test4))
+results[6, 3] <- 1/as.numeric(as.vector(test4))
+
+df_diff4 <- data.frame(group = c(rep('Control', length(diff4.3)), rep('Novelty', length(diff4.7))),
+                         value = c(diff4.3, diff4.7))
+
+# Display table
+kable(results)
+
+# Level of processing effect
+lvlPro <- ttestBF(hypo0$trans_value[hypo0$encodTask == 'living'],
+                  hypo0$trans_value[hypo0$encodTask == 'alphabetical'],
+                  paired = TRUE)
+
+lvlPro <- round(as.numeric(as.vector(lvlPro)))
+```
+
+As a sanity check, we replicated the level of processing effect with better performance for the living condition (BF10 = `r lvlPro`).
+
+```{r, fig.width = 10}
+# Plots
+# Hypothesis 1.1
+pl_hypo1.1 <- ggplot(hypo1.1, aes(x = group, y = recalled, colour = group)) + 
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'Hypothesis 1.1', y = 'Words recalled', x = 'Group') +
+  scale_color_mrc(palette = 'primary') +
+  theme(legend.position = 'none')
+  #theme(legend.position = c(1, 0),
+   #    legend.justification = c(1, 0),
+  #     legend.key.size = unit(0.2, "cm"),
+   #    legend.title = element_blank())
+
+# Hypothesis 1.2
+pl_hypo1.2 <- ggplot(hypo1.2, aes(x = group, y = trans_value, colour = group)) + 
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'Hypothesis 1.2', y = 'Trans. est. probability', x = 'Group') +
+  scale_color_mrc(palette = 'primary') +
+  theme(legend.position = 'none')
+
+# Hypothesis 2.1
+pl_hypo2.1 <- ggplot(df_diff2.1, aes(x = group, y = value, colour = group)) + 
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'Differences: Hypothesis 2.1', y = 'Words recalled', x = 'Group') +
+  scale_color_mrc(palette = 'primary') +
+  theme(legend.position = 'none')
+
+# Hypothesis 2.2
+pl_hypo2.2 <- ggplot(df_diff2.2, aes(x = group, y = value, colour = group)) + 
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'Differences: Hypothesis 2.2', y = 'Trans. est. probability', x = 'Group') +
+  scale_color_mrc(palette = 'primary') +
+  theme(legend.position = 'none')
+
+# Hypothesis 3
+pl_hypo3 <- ggplot(df_diff3, aes(x = group, y = value, colour = group)) + 
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'Differences: Hypothesis 3', y = 'Trans. est. probability', x = 'Group') +
+  scale_color_mrc(palette = 'primary') +
+  theme(legend.position = 'none')
+
+# Hypothesis 4
+pl_hypo4 <- ggplot(df_diff4, aes(x = group, y = value, colour = group)) + 
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'Differences: Hypothesis 4', y = 'Trans. est. probability', x = 'Group') +
+  scale_color_mrc(palette = 'primary') +
+  theme(legend.position = 'none')
+
+plot_grid(pl_hypo1.1, pl_hypo1.2, pl_hypo2.1, pl_hypo2.2, pl_hypo3, pl_hypo4, nrow = 2)
+```
+
+
+# Is the counterbalancing the same across the tasks?
+For instance, are the words were learned in the alphabetical task also labelled as learned as such in the encoding task?
+
+```{r}
+participants <- unique(recogData$subNum)
+check_alpha  <- c()
+check_living <- c()
+for(i in 1:length(participants)){
+  #Alpha
+  words_encode <- encodData[encodData$subNum == participants[i] & encodData$task == 'alphabetical', 'word']
+  words_recog  <- recogData[recogData$subNum == participants[i] & recogData$task == 'alphabetical', 'word']
+  check_alpha[i] <- mean(words_encode %in% words_recog)
+  
+  # Living
+  words_encode <- encodData[encodData$subNum == participants[i] & encodData$task == 'living', 'word']
+  words_recog  <- recogData[recogData$subNum == participants[i] & recogData$task == 'living', 'word']
+  check_living[i] <- mean(words_encode %in% words_recog)
+}
+
+any(!check_alpha == 1)
+any(!check_living == 1)
+```
+
+As long both check return false, there is no problem with the scoring with the recogntion data. 
+
+
+### Questionnaire
+```{r}
+folderLocation   <- 'U:/Projects/noveltyVR/data/ignore_rawData/questionnaire/'
+allFiles         <- paste0(folderLocation, list.files(folderLocation))
+questData        <- do.call(rbind, lapply(allFiles, function(x) read.csv(x, stringsAsFactors = FALSE)))
+names(questData) <- c('num', 
+                      'interNum', 
+                      'itemName', 
+                      'shortcut', 
+                      'loading', 
+                      'question', 
+                      'leftAnchor', 
+                      'middleAnchor', 
+                      'rightAnchor', 
+                      'copyright',
+                      'subNum',
+                      'date',
+                      'time',
+                      'rating',
+                      'rt')
+
+# Add group to questionnaire
+questData$group <- NA
+participants    <- unique(questData$subNum)
+for(i in 1:length(participants)){
+  questData[questData$subNum == participants[i], 'group'] <- encodData_agg$group[encodData_agg$subNum == participants[i]][1]
+}
+
+# Make factor
+questData$group <- factor(questData$group, level = 1:2, labels = c('Novelty', 'Control'))
+
+# Plot
+ggplot(questData, aes(x = shortcut, y = rating, colour = group)) +
+  geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
+  geom_point(position = position_jitterdodge()) +
+  labs(title = 'Questionnaire', y = 'Rating', x = '') +
+  scale_color_mrc(palette = 'primary') +
+  coord_flip()
+```

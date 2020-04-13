@@ -1,0 +1,24 @@
+# MPT model for remember/familiar/new task
+# For noveltyVR
+
+# data in .R is ordered to reflect order of .model below
+# Columns: 6 response categories labelled left to right, raw numberbutton presses
+# Correct:   studied    unstudied
+# Responded  r, f, n	  r, f, n
+
+# For one grp at a time, use in individual parameter .R scripts to get estimates per participant
+
+#######################
+# Studied items
+r + (1 - r)*(1 - f)*gr                  # Studied item remembered
+(1 - r)*f + (1 - r)*(1 - f)*(1 - gr)*gf # Studied item familiar
+(1 - r)*(1 - f)*(1 - gr)*(1 - gf)       # Studied item new
+
+# New items
+gr                                      # New item remembered
+(1 - gr)*gf                             # New item familiar
+(1 - gr)*(1 - gf)                       # New item new
+
+
+
+
