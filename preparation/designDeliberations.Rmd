@@ -8,16 +8,12 @@ knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE, 
                       message = FALSE)
 options(scipen = 1)
-
-dispDesignMatrix <- function(x){
-  image(t(apply(x, 2, rev)), axes = FALSE)
-}
 ```
 
 # Aim of this document
-The aim of this document is to accompany the design analysis for noveltyVR ([see here](https://github.com/JAQuent/noveltyVR/blob/master/preparation/bayesianDesignAnalysis_tTest_fixedN.md)) and to shed light on the deliberations concerning the planned analysis. 
+The aim of this document is to accompany the power analysis for noveltyVR ([see here](https://github.com/JAQuent/noveltyVR/blob/master/preparation/powerAnalysis.md)) and to shed light on the deliberations concerning the planned analysis that might seem untraditional. 
 
-The planned design is a 2 x 2 x 2 design with one between and two within subject factors. There will be a novelty and a control group (Factor N) and we will examine recollection/familiarity (Factor M) for weakly/strongly learned words (Factor E). 
+In essence, the planned design is a 2 x 2 x 2 design with one between and two within subject factors. There will be a novelty and a control group (Factor N) and we will examine recollection/familiarity (Factor M) for shallowly/deeply learned words (Factor E). Instead of a mixed (Bayesian) ANOVA, we plan to use (Bayesian) T-tests for reason outlined above. Among other things, this document shows that advantages of this approach. 
 
 # Libraries
 ```{r}
@@ -28,68 +24,83 @@ library(cowplot)
 library(BayesFactor)
 library(ez)
 library(reshape2)
+library(assortedRFunctions)
 theme_set(theme_grey()) # Important to retain the ggplot theme
 ```
 
 # Generating a dataset with a mixed 2 x 2 x 2 design
-The design will be mixed 2 x 2 x 2  with one between and two within subject factors. The GLM for the full model is defined by this equation
+The design will be a mixed 2 x 2 x 2 design with one between and two within subject factors. This can be expressed as a general linear model (GLM). The equation for this is 
 
 ![Equation 1](/Projects/noveltyVR/preparation/designDeliberations_files/equation1.png)
 
 where the response from the *n*th subject from group *g* is modeled as the effect of N (between), g = [1 2], effect of E (within), i = [1 2], and effect of M (within), j = [1 2], and all the two-way and three way interactions. In addition to error term for all observations $N(0, \sigma_e^2)$, there is an additional subject specific error term, $N(0, \sigma_e^2)$. Note that for simplicity, this model does not include interactions with subject as additional error terms. In other words, we assume "effect-by-subject" errors to have the same scaling ([see here for discussion](https://www.fil.ion.ucl.ac.uk/~wpenny/publications/rik_anova.pdf)).  
 
-The code below creates a GLM where every $\beta$-value is set to 0.2 for 36 subjects per group. 
+The code below creates a GLM where every $\beta$-value is set to 0.884 for 36 subjects per group. The SD for the error terms are set to 1 so that the $\beta$-value is equivalent to Cohens's D of d = 0.884. 
 
 ```{r}
-# Setting seed![Equation 1](/Projects/noveltyVR/preparation/bayesianDesignAnalysis_ANOVA_fixedN_files/equation.jpg)
-set.seed(392571)
+# Setting seed
+set.seed(39257314)
 
 # Sample size, groups and levels
 groups      <- 2
-groupSize   <- 36
+groupSize   <- 50
 n           <- groupSize  * groups
 levels1     <- 2
 levels2     <- 2
 totalLevels <- levels1 * levels2
 nObvs       <- n * totalLevels
 
-# Variables
-N <- c(rep(1, groupSize * totalLevels), rep(-1, groupSize * totalLevels))
-E <- c(rep(c(1, 1, -1, -1), each = groupSize), rep(c(1, 1, -1, -1), each = groupSize))
-M <- c(rep(c(1, -1, 1, -1), each = groupSize), rep(c(1, -1, 1, -1), each = groupSize))
+# Coefficients with all the 
+es      <- 0.884
+beta0   <- 0
+beta1   <- es
+beta2   <- es
+beta3   <- es
+beta4   <- es
+beta5   <- es
+beta6   <- es
+beta7   <- es
+e_subj1 <- rnorm(groupSize, mean = 0, sd = 1)
+e_subj2 <- rnorm(groupSize, mean = 0, sd = 1)
+b       <- c(beta2  - beta4/2, 
+             beta3  - beta5/2, 
+             beta6  - beta6, 
+             e_subj1)
+b       <- c(beta0, 
+             beta1, 
+             b, 
+             c(beta2 + beta4/2, 
+               beta3 + beta5/2, 
+               beta6 + beta6, 
+               e_subj2))
 
-# Coefficients with all the interactions
-beta0  <- 0.2
-beta1  <- 0.2
-beta2  <- 0.2
-beta3  <- 0.2
-beta4  <- 0.2
-beta5  <- 0.2
-beta6  <- 0.2
-beta7  <- 0.2
-e_subj <- rnorm(groupSize, mean = 0, sd = 1)
-b      <- c(beta2 + beta4, 
-            beta3 + beta5, 
-            beta6 + beta7, 
-            e_subj)
-b      <- c(beta0, 
-            beta1, 
-            b, 
-            c(beta2 - beta4, 
-              beta3 - beta5, 
-              beta6 - beta7, 
-              e_subj))
-
-# Creating design matrix
-cons <- matrix(c( 1,  1, -1, -1,
-                  1, -1,  1, -1,
-                  1, -1, -1,  1),
+# Creating design matrix  
+cons <- matrix(c(0.5, 0.5, -0.5, -0.5,
+                 0.5, -0.5,  0.5, -0.5,
+                 1/4, -1/4, -1/4, 1/4),
                nrow = 3,
                byrow = TRUE)
 X    <- cbind(kronecker(t(cons), rep(1, groupSize)), 
               kronecker(rep(1, totalLevels), diag(groupSize)))
-X    <- bdiag(X, X)
-X    <- cbind(1, rep(c(1, -1), each = groupSize * totalLevels), X)
+X    <- bdiag(X, cbind(kronecker(t(cons), rep(1, groupSize)), 
+                       kronecker(rep(1, totalLevels), diag(groupSize))))
+X    <- cbind(1, rep(c(0.5, -0.5), each = groupSize * totalLevels), X)
+
+# Generating data
+y  <- X %*% b + rnorm(dim(X)[1], mean = 0, sd = 1)
+
+# Variables for data frame
+N  <- c(rep(1, groupSize * totalLevels), rep(0, groupSize * totalLevels))
+E  <- c(rep(c(1, 1, 0, 0), each = groupSize), rep(c(1, 1, 0, 0), each = groupSize))
+M  <- c(rep(c(1, 0, 1, 0), each = groupSize), rep(c(1, 0, 1, 0), each = groupSize))
+id <- c(rep(1:groupSize, 4), rep((groupSize+1):(groupSize*2), 4))
+
+# creating data.frame
+df <- data.frame(y = as.matrix(y),
+                 N = N,
+                 E = E,
+                 M = M,
+                 id = id)
 ```
 
 The design matrix is shown below for visualisation:
@@ -99,29 +110,13 @@ dispDesignMatrix(X)
 title(main = 'Design matrix for 2 x 2 x 2 design')
 ```
 
-The first column of this design matrix represents the intercept followed by the group effect and then by the within subject effects and subject specific effects on the diagonals.  
-
-```{r}
-# Generating data and creating data.frame
-y <- X %*% b + rnorm(dim(X)[1], mean = 0, sd = 1)
-df <- data.frame(y = as.matrix(y),
-                 N = N,
-                 E = E,
-                 M = M)
-
-# Fit model
-summary(lm(y ~ N*E*M, data = df))
-```
-
-The fitted values in the GLM above can accurately retrieve the true $\beta$-values. Note that the effect size of the within-subject factors $\beta$-values can be calculated by dividing it with the SD of the error term, which is set to 1 in that example. In a case, where there only one two-level factor the effect size of the $\beta$-value is equivalent to [Cohen's d](https://en.wikipedia.org/wiki/Effect_size#Cohen's_d).
-
-**Warning**: Note that N, E, and M must be coded as 1/-1, otherwise lm() will not give the right $\beta$-values. For anovaBF() on the other hand they need to be converted to factors. 
+The first column of this design matrix represents the intercept followed by the group effect and then by the within subject effects and subject specific effects on the diagonals. This section was aimed to illustrate the design of the experiment. Mow, we will focus on the proposed analysis. 
 
 # Analysing data with that model structure
-For us, four effects are of interest: main effect of novelty (N) with better memory for the novelty group, interaction of novelty with encoding strength (N x E) where novelty benefits weakly encoded words more, interaction of novelty with memory quality (N x M) where novelty increases recollection and lastly the interaction of novelty with encoding strength and memory quality (N x E x M) where novelty increases recollection for weakly encoded words. Theoretically, the most important effect is the interaction between novelty and and encoding strength (weakly/strongly).
+For us, four effects are of interest: main effect of novelty (N) with better memory for the novelty group, interaction of novelty with encoding task (N x E) where novelty benefits weakly encoded words more, interaction of novelty with memory quality (N x M) where novelty differently affects recollection and familiarity and lastly the interaction of novelty with encoding strength and memory quality (N x E x M) where novelty differently affected recollection and familiarity differently for shallowy and deeply encoded words. After much deliberation and input from the reviewers, we arrived at one-directional predictions for N and N x E and two-tailed predictions for N x M and N x E x M. More information on this can be found in the manuscript. 
 
 ## Data visualisation
-See below how the data generated with parameters specified above would look like.
+See below, for how the data generated using the parameters specified above would look like.
 
 ```{r}
 # Preparing data.frame
@@ -134,12 +129,11 @@ levels(df$M) <- c('Level 1', 'Level 2')
 df$id        <- as.factor(c(rep(1:groupSize, totalLevels), rep((groupSize + 1):n, totalLevels)))# Adding subject id
 
 # Aggregating and plotting data
-df_agg           <- ddply(df, c('N', 'E', 'M'), summarise, Value = mean(y))
-ggplot(df_agg, aes(x = E, y= Value, fill = M, group = M)) + facet_grid( ~ N) + geom_bar(stat="identity", position=position_dodge())
+ggplot(df, aes(x = E, y = y, fill = M)) + facet_grid( ~ N) + geom_boxplot()
 ```
 
 ## Standard ANOVA
-Even though, I don't intend to use a standard (frequentist version) ANOVA, I report it for a comparison. 
+A traditional way to analyse data with the design specified above would (frequentist version) ANOVA. Even though, I don't intend to use this approach, I still think it's a useful frame of references. 
 
 ```{r}
 # Anova
@@ -147,15 +141,13 @@ ezANOVA(data = df,
         dv = .(y),
         wid = .(id),
         between = .(N),
-        within = .(E, M),
-        detailed = TRUE)
+        within = .(E, M))
 ```
 
-Most main effects and interactions are significant as expected. The only effect that is not significant is the main effect of novelty. 
+According to the ANOVA, all effects are significant. The ANOVA - with no doubt - still respresents the standard way of analysing the data of such type. Hwoever, the problem with this analysis is that it fails to accurately capture our directional predictions and it doesn't allow us to state evidence in favour of null. Something that we're interested in given recent failures of finding an effect. 
 
 ## Bayesian ANOVA
-The first idea is to run Bayesian ANOVA to test our specific hypotheses. 
-Below, I follow the examples for Bayes factor analysis from [Richard Morey](https://richarddmorey.github.io/BayesFactor/#fixed). To evaluate the evidence for the effects of interest (see above), I compare only models that are plausible (for a discussion see Rouder, Engelhardt, McCabe, & Morey, 2016). This means that no model is used that contains interactions without the respective main effects. In contrast in a standard ANOVA, the full model is compared against model that doesn't include the factor in question. 
+Another possibility is to run the Bayesian version of an ANOVA to test our specific hypotheses as this allows to state evidence in favour of a null hypothesis. Below, I follow the examples for a Bayes factor analysis from [Richard Morey](https://richarddmorey.github.io/BayesFactor/#fixed). To evaluate the evidence for the effects of interest (see above), I compare only models that are plausible (for a discussion of this see Rouder, Engelhardt, McCabe, & Morey, 2016). This means that no model is used that contains interactions without the respective main effects. In contrast in a standard ANOVA, the full model is compared against model that doesn't include the factor in question. 
 
 ```{r}
 # Fitting model
@@ -164,106 +156,113 @@ bf <- anovaBF(y ~ N*E*M + id,
               data = df, 
               progress = FALSE)
 
-# Legend: N = novelty, E =  encoding strength, M = memory quality
-# What's the evidence for a main effect of N?
-bf[14]/bf[13]
+# Calculating BF10 for the hypothesis
+BF10 <- data.frame(Effect = c('N', 'N x E', 'N x M', 'N x E x M'),
+                   BF10   = c(as.numeric(as.vector(bf[14]/bf[13])), 
+                              as.numeric(as.vector(bf[9]/bf[8])),
+                              as.numeric(as.vector(bf[11]/bf[8])),
+                              as.numeric(as.vector(bf[18]/bf[17]))))
 
-# What's the evidence for an interaction between N and E?
-bf[9]/bf[8]
-
-# What's the evidence for an interaction between N and M?
-bf[11]/bf[8]
-
-# What's the evidence for an interaction between N and E and M?
-bf[18]/bf[17]
+kable(BF10)
 ```
 
-These are the models that I would plan to compare in the actual analysis. It is interesting to see that the choice of models does not seem to be of much importance at least for the generated data. For instance, the evidence for an effect of N is similar if model 14 & 13 (BF = `r round(as.numeric(as.vector(bf[14]/bf[13])), 2)`) model 8 & 7 (BF = `r round(as.numeric(as.vector(bf[8]/bf[7])), 2)`) or model 3 & 2 (BF = `r round(as.numeric(as.vector(bf[3]/bf[2])), 2)`) are compared. 
+Like the standard frequentist ANOVA, the Bayesian model comparison is two-sided. If we adopted that approach, we would have to collect data from too more participants than necessary and also it would prevent us from find compelling evidence for the absence of an effect. This because for two-sided comparison extremely large sample sizes are necessary. 
 
-However like the standard frequentist ANOVA, the Bayesian model comparison doesn't provide evidence to reject the null hypothesis for the main effect of N. 
+## Directional (Bayesian) t-tests
+Luckily, our independent variables only have two levels, which allows us to use directional t-tests instead of two-sided ANOVAs by comparing the differences of the differences between groups [see here for explanations](http://www.mrc-cbu.cam.ac.uk/wp-content/uploads/2015/03/Henson_EN_15_ANOVA.pdf).
 
-The problem with that approach is that the ANOVA is two-sided but we have specific one-sided hypotheses. If we adopted that approach, we would need to collect data from too many participants than necessary.
-
-## Directional t-tests
-Luckily, our independent variables only have two levels, which allows us to use directional t-tests instead of two-sided ANOVAs by comparing the differences of the differences between groups.
-
-The t-tests are calculated in the following ways: For the main effect of N, data is aggregated across the other within-variables yielding one mean per subjects. For both two-way interactions, the t-tests are calculated by aggregating across the other variable and comparing the within-subject differences of both groups. The t-test for the three-way interaction is calculated by difference between each level of E for both levels of M and the difference of them, which is then compared between groups. 
+The t-tests are calculated in the following ways: For the main effect of N, data is aggregated across the other within-variables yielding one mean per subjects. For both two-way interactions, the t-tests are calculated by aggregating across the other variable and comparing the within-subject differences of both groups. The t-test for the three-way interaction is calculated by taking the difference between each level of E for both levels of M and the difference of them, which is then compared between groups. 
 
 Following Richard Morey's [explanations](https://richarddmorey.github.io/BayesFactor/#fixed) for one-sided t-tests, there are two possibilities. The first one is to compare the alternative hypothesis to the point null, the other option is to compare the alternative to its complement so for instance $\delta > 0$ against $\delta < 0$. 
 
 ```{r}
+# Test results and effect sizes
+tResults    <- matrix(NA, nrow = 4, ncol = 2)
+effectSizes <- c()
+
 # What's the evidence for a main effect of N?
 mainEffect_N <- ddply(df, c('id', 'N'), summarise, y = mean(y))
 test1 <- ttestBF(x = mainEffect_N$y[mainEffect_N$N == 'Group 2'],
                  y = mainEffect_N$y[mainEffect_N$N == 'Group 1'],
-                 paired = FALSE,
                  nullInterval = c(-Inf, 0))
 # Point null vs. alt
-test1
-
+tResults[1, 1] <- as.numeric(as.vector(test1[2]))
 # Alt vs. complement
-test1[2]/test1[1]
+tResults[1, 2] <- as.numeric(as.vector(test1[2]/test1[1]))
+# Effect size
+effectSizes[1] <- cohens_d_raw(mainEffect_N$y[mainEffect_N$N == 'Group 2'],
+                               mainEffect_N$y[mainEffect_N$N == 'Group 1'])
 
 # What's the evidence for an interaction between N and E?
 inter_N_E <- ddply(df, c('id', 'N', 'E'), summarise, y = mean(y))
-diff1     <- inter_N_E[inter_N_E$N == 'Group 1' & inter_N_E$E == 'Level 2', 'y'] - inter_N_E[inter_N_E$N == 'Group 1' & inter_N_E$E == 'Level 1', 'y']
-diff2     <- inter_N_E[inter_N_E$N == 'Group 2' & inter_N_E$E == 'Level 2', 'y'] - inter_N_E[inter_N_E$N == 'Group 2' & inter_N_E$E == 'Level 1', 'y']
-test2     <- ttestBF(x = diff2,
-                     y = diff1,
+diff1     <- inter_N_E[inter_N_E$N == 'Group 1' & inter_N_E$E == 'Level 2', 'y'] - 
+             inter_N_E[inter_N_E$N == 'Group 1' & inter_N_E$E == 'Level 1', 'y']
+
+diff2     <- inter_N_E[inter_N_E$N == 'Group 2' & inter_N_E$E == 'Level 2', 'y'] - 
+             inter_N_E[inter_N_E$N == 'Group 2' & inter_N_E$E == 'Level 1', 'y']
+test2     <- ttestBF(x = diff1,
+                     y = diff2,
                      nullInterval = c(-Inf, 0))
 # Point null vs. alt
-test2
-
+tResults[2, 1] <- as.numeric(as.vector(test2[2]))
 # Alt vs. complement
-test2[2]/test2[1]
+tResults[2, 2] <- as.numeric(as.vector(test2[2]/test2[1]))
+# Effect size
+effectSizes[2] <- cohens_d_raw(diff1, diff2)
 
 # What's the evidence for an interaction between N and M?
 inter_N_M <- ddply(df, c('id', 'N', 'M'), summarise, y = mean(y))
 diff1     <- inter_N_M[inter_N_M$N == 'Group 1' & inter_N_M$M == 'Level 2', 'y'] - inter_N_M[inter_N_M$N == 'Group 1' & inter_N_M$M == 'Level 1', 'y']
 diff2     <- inter_N_M[inter_N_M$N == 'Group 2' & inter_N_M$M == 'Level 2', 'y'] - inter_N_M[inter_N_M$N == 'Group 2' & inter_N_M$M == 'Level 1', 'y']
-test3     <- ttestBF(x = diff2,
-                     y = diff1,
-                     nullInterval = c(-Inf, 0))
-
+test3     <- ttestBF(x = diff1,
+                     y = diff2)
 # Point null vs. alt
-test3
-
+tResults[3, 1] <- as.numeric(as.vector(test3))
 # Alt vs. complement
-test3[2]/test3[1]
+tResults[3, 2] <- NA
+# Effect size
+effectSizes[3] <- cohens_d_raw(diff1, diff2)
 
-# What's the evidence for an interaction between N and E and M?
+# Interaction between novelty, encoding and memory
 # Group 1
 # (E1M1 – E2M1)
 diff1 <- df[df$N == 'Group 1' & df$E == 'Level 1' & df$M == 'Level 1', 'y'] - df[df$N == 'Group 1' & df$E == 'Level 2' & df$M == 'Level 1', 'y']
-
 # (E1M2 – E2M2)
 diff2 <- df[df$N == 'Group 1' & df$E == 'Level 1' & df$M == 'Level 2', 'y'] - df[df$N == 'Group 1' & df$E == 'Level 2' & df$M == 'Level 2', 'y']
-
 # Difference of differences (E1M1 – E2M1) – (E1M2 – E2M2)
 diff3     <- diff1 - diff2
 
 # Group 2
 # (E1M1 – E2M1)
-diff4 <- df[df$N == 'Group 2' & df$E == 'Level 1' & df$M == 'Level 1', 'y'] - df[df$N == 'Group 2' & df$E == 'Level 2' & df$M == 'Level 1', 'y']
-
+diff4 <- df[df$N == 'Group 2' & df$E =='Level 1' & df$M == 'Level 1', 'y'] - df[df$N == 'Group 2' & df$E == 'Level 2' & df$M == 'Level 1', 'y']
 # (E1M2 – E2M2)
 diff5 <- df[df$N == 'Group 2' & df$E == 'Level 1' & df$M == 'Level 2', 'y'] - df[df$N == 'Group 2' & df$E == 'Level 2' & df$M == 'Level 2', 'y']
-
 # Difference of differences (E1M1 – E2M1) – (E1M2 – E2M2)
 diff7     <- diff4 - diff5
 
-test4     <- ttestBF(x = diff7,
-                     y = diff3,
-                     nullInterval = c(-Inf, 0))
-
-#Point null vs. alt
-test4
-
+test4     <- ttestBF(x = diff3,
+                     y = diff7)
+# Point null vs. alt
+tResults[4, 1] <- as.numeric(as.vector(test4))
 # Alt vs. complement
-test4[2]/test4[1]
+tResults[4, 2] <- NA
+# Effect size
+effectSizes[4] <- cohens_d_raw(diff7, diff2)
 ```
 
-As we can see, the choice of the null hypothesis is very important. While the BF for the main effect of N is only `r round(as.numeric(as.vector(test1[2])), 2)`) compared to the point null. It's `r round(as.numeric(as.vector(test1[2]/test1[1])), 2)`) compared to its complement. However, we don't anticipate negative effects here and values close to zero would result in inconclusive evidence (BF close to 1), we decided to use the point null hypothesis. 
+
+```{r echo = FALSE}
+BF10_tTests <- data.frame(Effect = c('N', 'N x E', 'N x M', 'N x E x M'),
+                          `BF10 point` = round(tResults[, 1]),
+                          `BF10 complement` = round(tResults[, 2]),
+                          `cohen's D` = round(effectSizes, 2))
+names(BF10_tTests) <- c('Effect', 'BF10 point', 'BF10 complement', "cohen's D")
+kable(BF10_tTests)
+```
+
+This approach also allowed us to calculate the effect size Cohen's D for each comparison.
+
+As we can see, the choice of the null hypothesis is very important. The BF for the main effect of N comparing to the point null is `r round(round(as.numeric(as.vector(test1[2]/test1[1])))/round(as.numeric(as.vector(test1[2]))))` times higher than comparing to its complement. We don't anticipate negative effects here and values close to zero would result in inconclusive evidence (BF close to 1), we therefore decided to use the point null hypothesis. 
 
 # Conclusions
 All in all, the t-tests give us the possibility to provide evidence for the effects of interests while testing less participants compared to what would be necessary if we used two-sided ANOVAS. 

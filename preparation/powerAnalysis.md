@@ -1,6 +1,6 @@
 Power analysis
 ================
-October 02, 2019
+April 13, 2020
 
 Aim of this document
 ====================
@@ -39,7 +39,7 @@ The simulation was repeated 1000 times for each sample size.
 
 ![](powerAnalysis_files/figure-markdown_github/unnamed-chunk-4-1.png)
 
-As can be seen above, both one-tailed as well as two-tailed tests surpass 80% power with around 36 participants for our alternative hypothesis (H1). Therefore we choose this as our sample size. With regard to H0, power is much lower around 25% for one-tailed comparisons and 0% for two-tailed comparisons. The latter is not surprising and shows that an extremely high sample size would be necessary for this.
+As can be seen above, both one-tailed as well as two-tailed tests surpass 80% power with around 36 participants for our alternative hypothesis (H1). Therefore we choose this as our sample size. With regard to H0, power is much lower around 25% for one-tailed comparisons and 0% for two-tailed comparisons. The latter is not surprising and shows that an extremely large sample would be necessary for this to obtain evidence for that.
 
 ### Analysis
 
@@ -71,7 +71,7 @@ The probability of obtaining misleading evidence is generally very low. The high
 | H1         | two-tailed |    0.833|
 | H0         | two-tailed |    0.000|
 
-The probability of finding evidence against and in favour of higher memory performance in the novelty group is low (30 % for one-tailed comparisonss). However, the probability to obtain compelling evidence in favour is high (over 83 %) for both comparisons.
+The probability of finding evidence against and in favour of higher memory performance in the novelty group is low (30 % for one-tailed comparisons). However, the probability to obtain compelling evidence in favour is high (over 83 %) for both comparisons.
 
 Conclusion
 ==========

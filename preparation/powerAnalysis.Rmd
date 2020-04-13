@@ -100,7 +100,7 @@ ggplot(combined_df, aes(x = n, y = BF, colour = Direction, linetype = Hypothesis
   coord_cartesian(ylim = c(0, 1), xlim = c(10, 40), expand = FALSE)
 ```
 
-As can be seen above, both one-tailed as well as two-tailed tests surpass 80% power with around 36 participants for our alternative hypothesis (H1). Therefore we choose this as our sample size. With regard to H0, power is much lower around 25% for one-tailed comparisons and 0% for two-tailed comparisons. The latter is not surprising and shows that an extremely high sample size would be necessary for this. 
+As can be seen above, both one-tailed as well as two-tailed tests surpass 80% power with around 36 participants for our alternative hypothesis (H1). Therefore we choose this as our sample size. With regard to H0, power is much lower around 25% for one-tailed comparisons and 0% for two-tailed comparisons. The latter is not surprising and shows that an extremely large sample would be necessary for this to obtain evidence for that. 
 
 ### Analysis
 Following Schönbrodt & Wagenmakers (2018), we want to answer the following questions with that design analysis for a sample size of 36 participants per group:
@@ -193,7 +193,7 @@ table1 <- data.frame(Hypothesis = c('H1', 'H0', 'H1', 'H0'),
 kable(table1)
 ```
 
-The probability of finding evidence against and in favour of higher memory performance in the novelty group is low  (30 % for one-tailed comparisonss). However, the probability to obtain compelling evidence in favour is high (over 83 %) for both comparisons. 
+The probability of finding evidence against and in favour of higher memory performance in the novelty group is low  (30 % for one-tailed comparisons). However, the probability to obtain compelling evidence in favour is high (over 83 %) for both comparisons. 
 
 # Conclusion
 In sum, a sample size of 36 per group is enough to provide compelling evidence in favour of an effect of similar magnitude to the effects reported in the literature. 
