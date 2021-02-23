@@ -312,7 +312,8 @@ recogData_times <- ddply(recogData,
 
 # Combine to one data frame
 times           <- recogData_times
-times$encodTime <- encodData_times$encodTime[encodData_times$subNum %in% recogData_times$subNum]
+times$encodTime <- NA
+times$encodTime[recogData_times$subNum %in% encodData_times$subNum] <- encodData_times$encodTime[encodData_times$subNum %in% recogData_times$subNum]
 times$diff      <- as.numeric(difftime(times$recogTime, times$encodTime, units = 'hours'))
 kable(times)
 ```
