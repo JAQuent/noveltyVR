@@ -1,6 +1,6 @@
 Selecting and checking living/non-living words
 ================
-JÃ¶rn Alexander Quent
+Joern Alexander Quent
 June 17, 2019
 
 Aim
