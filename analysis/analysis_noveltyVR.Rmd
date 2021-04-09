@@ -291,6 +291,11 @@ ggplot(hypo4, aes(x = encodTask, y = trans_value, colour = group)) +
 
 #### Calculate time in hours between starts of encoding and recognition tasks
 ```{r}
+# If the time is before 10 am, there is problem because the zero is removed
+encodData$time <- as.character(encodData$time)
+# Add zero when only 5 numbers
+encodData$time[nchar(encodData$time) == 5] <- paste0(0, encodData$time[nchar(encodData$time) == 5])
+
 # Format: "2020-01-27 13:45:57"
 # Convert data and time for encoding task
 encod_startTime      <- strptime(x = paste(encodData$date, encodData$time), format = "%Y%m%d %H%M%S")
