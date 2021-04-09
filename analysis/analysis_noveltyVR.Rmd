@@ -5,6 +5,13 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+
+
+
+######################################################
+# Path to parent folder noveltyVR
+path2parent <- "C:/Users/aq01/Documents/noveltyVR" # This need to be changed to run this document
+######################################################
 ```
 
 # Aims
@@ -51,15 +58,16 @@ conditionTable$aTask <- as.character(conditionTable$aTask)
 conditionTable$bTask <- as.character(conditionTable$bTask)
 
 # Note that the col list1, list2 and list3 do not refer to the actual word lists wordList1.txt etc but only 
-# to the 1st, 2nd and 3rd list. They col contains which actuall wordList is assign to that spot. This might be confusing as in the recallSheet list1 etc refer to the wordLists
+# to the 1st, 2nd and 3rd list. They col contains which actual wordList is assign to that spot. This might be confusing as in the recallSheet list1 etc refer to the wordLists
 ```
 
 
 ## Loading data
 ### Encoding task
 ```{r}
-folderLocation  <- 'U:/Projects/noveltyVR/data/ignore_rawData/judgement/'
-allFiles        <- paste0(folderLocation, list.files(folderLocation))
+# Load all files in the folder
+folderLocation  <- '/data/ignore_rawData/judgement/'
+allFiles        <- paste0(path2parent, folderLocation, list.files(paste0(path2parent, folderLocation)))
 
 encodData <- do.call(rbind, lapply(allFiles, function(x) read.table(x, stringsAsFactors = FALSE, header = TRUE)))
 ```
@@ -118,9 +126,9 @@ There is strong evidence that RT are faster in the living condition (BF10 = `r r
 
 ### Recognition task
 ```{r}
-# Look for all files in that folder and load them.
-folderLocation  <- 'U:/Projects/noveltyVR/data/ignore_rawData/recognition/'
-allFiles        <- paste0(folderLocation, list.files(folderLocation))
+# Load all files in the folder
+folderLocation  <- '/data/ignore_rawData/recognition/'
+allFiles        <- paste0(path2parent, folderLocation, list.files(paste0(path2parent, folderLocation)))
 
 recogData <- do.call(rbind, lapply(allFiles, function(x) read.csv(x, stringsAsFactors = FALSE)))
 ```
@@ -320,7 +328,7 @@ kable(times)
 
 ### Recall data
 ```{r}
-recallSheet <- read.csv('U:/Projects/noveltyVR/data/ignore_rawData/recallData.csv')
+recallSheet <- read.csv(paste0(path2parent, '/data/ignore_rawData/recallData.csv'))
 
 # Assign correct conditions to list 1, 2 and 3
 recallData <- data.frame(subNum    = rep(recallSheet$subNum, each = 2),
@@ -331,7 +339,7 @@ recallData <- data.frame(subNum    = rep(recallSheet$subNum, each = 2),
 
 # Loop through recallSheet
 for(i in 1:dim(recallSheet)[1]){
-  # Parse condition from conditioonTable and save in tempCond
+  # Parse condition from conditionTable and save in tempCond
   tempCond <- conditionTable[which(recallSheet$condition[i] == conditionTable$condition), ]
   
   # Values from 1st and 2nd list
@@ -394,7 +402,7 @@ test2.1   <- ttestBF(x = diff2.1.1,
                      y = diff2.1.2,
                      nullInterval = c(-Inf, 0))
 
-# Plot differnce
+# Plot difference
 df_diff2.1 <- data.frame(group = c(rep('Control', length(diff2.1.1)), rep('Novelty', length(diff2.1.2))),
                          value = c(diff2.1.1, diff2.1.2))
 
@@ -414,7 +422,7 @@ test2.2   <- ttestBF(x = diff2.2.1,
 results[4, 2] <- as.numeric(as.vector(test2.2[2]))
 results[4, 3] <- 1/as.numeric(as.vector(test2.2[2]))
 
-# Plot differnce
+# Plot difference
 df_diff2.2 <- data.frame(group = c(rep('Control', length(diff2.2.1)), rep('Novelty', length(diff2.2.2))),
                          value = c(diff2.2.1, diff2.2.2))
 
@@ -431,7 +439,7 @@ results[5, 2] <- as.numeric(as.vector(test3))
 results[5, 3] <- 1/as.numeric(as.vector(test3))
 
 
-# Plot differnce
+# Plot difference
 df_diff3 <- data.frame(group = c(rep('Control', length(diff3.1)), rep('Novelty', length(diff3.2))),
                          value = c(diff3.1, diff3.2))
 
@@ -561,13 +569,15 @@ any(!check_alpha == 1)
 any(!check_living == 1)
 ```
 
-As long both check return false, there is no problem with the scoring with the recogntion data. 
+As long both check return false, there is no problem with the scoring with the recognition data. 
 
 
 ### Questionnaire
 ```{r}
-folderLocation   <- 'U:/Projects/noveltyVR/data/ignore_rawData/questionnaire/'
-allFiles         <- paste0(folderLocation, list.files(folderLocation))
+# Load all files in the folder
+folderLocation  <- '/data/ignore_rawData/questionnaire/'
+allFiles        <- paste0(path2parent, folderLocation, list.files(paste0(path2parent, folderLocation)))
+
 questData        <- do.call(rbind, lapply(allFiles, function(x) read.csv(x, stringsAsFactors = FALSE)))
 names(questData) <- c('num', 
                       'interNum', 
