@@ -186,10 +186,10 @@ recogData_rt$response <- as.factor(recogData_rt$response)
 recogData_rt$subNum <- as.factor(recogData_rt$subNum)
 
 rfnTest <- anovaBF(RT ~ response + subNum, data = recogData_rt, whichRandom = "subNum", progress = FALSE)
-rfnTest <-round(as.numeric(as.vector(rfnTest)))
+rfnTest <- round(as.numeric(as.vector(rfnTest)))
 ```
 
-This compairson showed a main effect of recognition type (BF10 = `r rfnTest`).
+This comparison showed a main effect of recognition type (BF10 = `r rfnTest`).
 
 Run MTP analysis
 ```{r}
@@ -482,6 +482,11 @@ df_diff4 <- data.frame(group = c(rep('Control', length(diff4.3)), rep('Novelty',
 
 # Display table
 kable(results)
+
+# Progress in data collection
+group_agg <- ddply(recogData, c('subNum'), summarise, group = group[1])
+group_df  <- data.frame(Group = c(1, 2), Number = as.vector(table(group_agg$group)), Percent = as.vector(table(group_agg$group))/36)
+kable(group_df)
 
 # Level of processing effect
 lvlPro <- ttestBF(hypo0$trans_value[hypo0$encodTask == 'living'],
