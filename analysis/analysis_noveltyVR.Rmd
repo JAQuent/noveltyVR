@@ -36,8 +36,6 @@ library(BayesFactor)
 theme_set(theme_grey())
 ```
 
-Important things:
-Calculate time difference between encoding and recognition
 
 # Condition
 ```{r}
@@ -316,7 +314,7 @@ recog_startTime <- paste0(recogData$year,
                           recogData$hour,
                           ':',
                           recogData$minute)
-recogData$startTime <- recog_startTime
+recogData$startTime <- as.character(recog_startTime)
 
 # Get times sorted for participants
 recogData_times <- ddply(recogData, 
@@ -328,6 +326,8 @@ times           <- recogData_times
 times$encodTime <- NA
 times$encodTime[recogData_times$subNum %in% encodData_times$subNum] <- encodData_times$encodTime[encodData_times$subNum %in% recogData_times$subNum]
 times$diff      <- as.numeric(difftime(times$recogTime, times$encodTime, units = 'hours'))
+
+# Display table
 kable(times)
 ```
 
