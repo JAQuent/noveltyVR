@@ -91,6 +91,10 @@ encodData_agg <- ddply(encodData,
 rtPlot <- ggplot(encodData_agg, aes(x = task, y = rt, colour = task)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+  stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = task),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   labs(title = 'RT by task', y = 'RT in msec', x = 'Task') +
   scale_color_mrc(palette = 'primary') +
   theme(legend.position = 'none')
@@ -98,6 +102,10 @@ rtPlot <- ggplot(encodData_agg, aes(x = task, y = rt, colour = task)) +
 accPlot <- ggplot(encodData_agg, aes(x = task, y = acc, colour = task)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+    stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = task),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   labs(title = 'Accuracy by task', y = 'Accuracy', x = 'Task') +
   scale_color_mrc(palette = 'primary') +
   theme(legend.position = 'none')
@@ -108,12 +116,23 @@ plot_grid(rtPlot, accPlot)
 Note that for the first participant, the responses were not saved correctly and have to be inverted. 
 
 ```{r}
-rtTest <- ttestBF(encodData_agg$rt[encodData_agg$task == 'living'], 
-                  encodData_agg$rt[encodData_agg$task == 'alphabetical'], 
+val1 <- encodData_agg$rt[encodData_agg$task == 'living']
+val2 <- encodData_agg$rt[encodData_agg$task == 'alphabetical']
+# Only use data where both are not outliers
+val1 <- val1[!(is.na(val1) | is.na(val2))]
+val2 <- val2[!(is.na(val1) | is.na(val2))]
+
+rtTest <- ttestBF(val1, 
+                  val2, 
                   paired = TRUE)
 
-acTest <- ttestBF(encodData_agg$acc[encodData_agg$task == 'living'],
-                  encodData_agg$acc[encodData_agg$task == 'alphabetical'], 
+val1 <- encodData_agg$acc[encodData_agg$task == 'living']
+val2 <- encodData_agg$acc[encodData_agg$task == 'alphabetical']
+# Only use data where both are not NA
+val1 <- val1[!(is.na(val1) | is.na(val2))]
+val2 <- val2[!(is.na(val1) | is.na(val2))]
+acTest <- ttestBF(val1,
+                  val2, 
                   paired = TRUE)
 
 rtTest <- round(as.numeric(as.vector(rtTest)))
@@ -175,6 +194,10 @@ recogData_rt <- ddply(recogData, c('subNum', 'response'), summarise, RT = mean(r
 ggplot(recogData_rt, aes(x = response, y = RT, colour = response)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+  stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = response),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   labs(title = 'RT by recognition response', y = 'RT in msec', x = 'Recognition response') +
   scale_color_mrc(palette = 'primary') +
   theme(legend.position = 'none')
@@ -250,14 +273,22 @@ hypo0 <- ddply(mainData, c('subNum', 'encodTask'), summarise, trans_value = mean
 ggplot(hypo0, aes(x = encodTask, y = trans_value, colour = encodTask)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+  stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = encodTask),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   labs(title = 'Level of processing effect', y = 'Transformed probability estimate', x = 'Group') +
   scale_color_mrc(palette = 'primary')
 
-# Hypohesis 1.2
+# Hypothesis 1.2
 hypo1.2 <- ddply(mainData, c('subNum', 'group'), summarise, trans_value = mean(trans_value))
 ggplot(hypo1.2, aes(x = group, y = trans_value, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+  stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = group),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   labs(title = 'Hypothesis 1.2', y = 'Transformed probability estimate', x = 'Group') +
   scale_color_mrc(palette = 'primary')
 
@@ -266,6 +297,10 @@ hypo2.2 <- ddply(mainData, c('subNum', 'group', 'encodTask'), summarise, trans_v
 ggplot(hypo2.2, aes(x = encodTask, y = trans_value, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+  stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = group),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   labs(title = 'Hypothesis 2.2', y = 'Transformed probability estimate', x = 'Encoding task') +
   scale_color_mrc(palette = 'primary')
 
@@ -274,6 +309,10 @@ hypo3 <- ddply(mainData, c('subNum', 'group', 'parameter'), summarise, trans_val
 ggplot(hypo3, aes(x = parameter, y = trans_value, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+  stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = group),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   labs(title = 'Hypothesis 3', y = 'Transformed probability estimate', x = 'Encoding task') +
   scale_color_mrc(palette = 'primary')
 
@@ -283,6 +322,10 @@ ggplot(hypo4, aes(x = encodTask, y = trans_value, colour = group)) +
   facet_grid(.~parameter) +
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+  stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = group),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   labs(title = 'Hypothesis 4', y = 'Transformed probability estimate', x = 'Encoding task') +
   scale_color_mrc(palette = 'primary')
 ```
@@ -371,6 +414,10 @@ hypo2.1 <- recallData
 ggplot(hypo2.1, aes(x = encodTask, y = recalled, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+    stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = group),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   labs(title = 'Hypothesis 2.1', y = 'Number of words recalled', x = 'Encoding task') +
   scale_color_mrc(palette = 'primary')
 ```
@@ -504,6 +551,10 @@ As a sanity check, we replicated the level of processing effect with better perf
 pl_hypo1.1 <- ggplot(hypo1.1, aes(x = group, y = recalled, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+  stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = group),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   labs(title = 'Hypothesis 1.1', y = 'Words recalled', x = 'Group') +
   scale_color_mrc(palette = 'primary') +
   theme(legend.position = 'none')
@@ -516,6 +567,10 @@ pl_hypo1.1 <- ggplot(hypo1.1, aes(x = group, y = recalled, colour = group)) +
 pl_hypo1.2 <- ggplot(hypo1.2, aes(x = group, y = trans_value, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+  stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = group),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   labs(title = 'Hypothesis 1.2', y = 'Trans. est. probability', x = 'Group') +
   scale_color_mrc(palette = 'primary') +
   theme(legend.position = 'none')
@@ -524,6 +579,10 @@ pl_hypo1.2 <- ggplot(hypo1.2, aes(x = group, y = trans_value, colour = group)) +
 pl_hypo2.1 <- ggplot(df_diff2.1, aes(x = group, y = value, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+  stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = group),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   labs(title = 'Differences: Hypothesis 2.1', y = 'Words recalled', x = 'Group') +
   scale_color_mrc(palette = 'primary') +
   theme(legend.position = 'none')
@@ -532,6 +591,10 @@ pl_hypo2.1 <- ggplot(df_diff2.1, aes(x = group, y = value, colour = group)) +
 pl_hypo2.2 <- ggplot(df_diff2.2, aes(x = group, y = value, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+  stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = group),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   labs(title = 'Differences: Hypothesis 2.2', y = 'Trans. est. probability', x = 'Group') +
   scale_color_mrc(palette = 'primary') +
   theme(legend.position = 'none')
@@ -540,6 +603,10 @@ pl_hypo2.2 <- ggplot(df_diff2.2, aes(x = group, y = value, colour = group)) +
 pl_hypo3 <- ggplot(df_diff3, aes(x = group, y = value, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+  stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = group),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   labs(title = 'Differences: Hypothesis 3', y = 'Trans. est. probability', x = 'Group') +
   scale_color_mrc(palette = 'primary') +
   theme(legend.position = 'none')
@@ -548,6 +615,10 @@ pl_hypo3 <- ggplot(df_diff3, aes(x = group, y = value, colour = group)) +
 pl_hypo4 <- ggplot(df_diff4, aes(x = group, y = value, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+  stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = group),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   labs(title = 'Differences: Hypothesis 4', y = 'Trans. est. probability', x = 'Group') +
   scale_color_mrc(palette = 'primary') +
   theme(legend.position = 'none')
@@ -619,7 +690,12 @@ questData$group <- factor(questData$group, level = 1:2, labels = c('Novelty', 'C
 ggplot(questData, aes(x = shortcut, y = rating, colour = group)) +
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
+  
   labs(title = 'Questionnaire', y = 'Rating', x = '') +
   scale_color_mrc(palette = 'primary') +
+  stat_summary(geom = "point", fun = "mean", col = 'black', size = 3, shape = 24, aes(fill = group),
+               position=position_dodge(width =  0.75),
+               key_glyph = "rect") +
+  scale_fill_mrc(palette = 'primary') +
   coord_flip()
 ```
