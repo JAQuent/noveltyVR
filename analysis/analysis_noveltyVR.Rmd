@@ -123,8 +123,9 @@ rtTest <- ttestBF(val1,
 val1 <- encodData_agg$acc[encodData_agg$task == 'living']
 val2 <- encodData_agg$acc[encodData_agg$task == 'alphabetical']
 # Only use data where both are not NA
-val1 <- val1[!(is.na(val1) | is.na(val2))]
-val2 <- val2[!(is.na(val1) | is.na(val2))]
+includer <- !(is.na(val1) | val1 == 0 | is.na(val2) | val2 == 0)
+val1 <- val1[includer]
+val2 <- val2[includer]
 acTest <- ttestBF(val1,
                   val2, 
                   paired = TRUE)
@@ -525,9 +526,15 @@ df_diff4 <- data.frame(group = c(rep('Control', length(diff4.3)), rep('Novelty',
 kable(results)
 
 # Progress in data collection
-group_agg <- ddply(recogData, c('subNum'), summarise, group = group[1])
+group_agg <- ddply(recogData, c('subNum', 'condition'), summarise, group = group[1])
 group_df  <- data.frame(Group = c(1, 2), Number = as.vector(table(group_agg$group)), Percent = as.vector(table(group_agg$group))/36)
 kable(group_df)
+
+# Table of conditions for Novelty group
+condition_distribution <- as.data.frame(table(group_agg$condition[group_agg$group == 1]))
+condition_distribution <- cbind(condition_distribution, as.data.frame(table(group_agg$condition[group_agg$group == 2]))[,2])
+names(condition_distribution) <- c('Condition', 'Novelty group', 'Control group')
+kable(condition_distribution)
 
 # Level of processing effect
 lvlPro <- ttestBF(hypo0$trans_value[hypo0$encodTask == 'living'],
