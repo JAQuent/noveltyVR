@@ -8,14 +8,14 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 
 ######################################################
 # Path to parent folder noveltyVR
-path2parent <- "C:/Users/aq01/Documents/noveltyVR" # This need to be changed to run this document
+#path2parent <- "C:/Users/aq01/Documents/noveltyVR" # This need to be changed to run this document
+path2parent <- "C:/Users/Alex/Documents/noveltyVR" # This need to be changed to run this document
 ######################################################
 ```
 
 # Aims
 This document runs a quick analysis on the data.
 
-# Libraries used
 ```{r}
 library(plyr)
 library(MPTinR)
@@ -27,6 +27,7 @@ library(ggplot2)
 library(MRColour)
 library(cowplot)
 library(BayesFactor)
+library(assortedRFunctions)
 theme_set(theme_grey())
 ```
 
@@ -174,6 +175,32 @@ acc[studied == 0 & (response == 'n')] <- 1
 acc[studied == 1 & (response == 'n')] <- 0
 acc[studied == 0 & (response == 'r' | response == 'f')] <- 0
 recogData$acc <- acc
+
+# Correct sub 63
+sub63   <- recogData[recogData$subNum == '63',]
+sub14   <- recogData[recogData$subNum == '14',] # is condition 6
+sub56   <- recogData[recogData$subNum == '56',]
+sub79 <- recogData[recogData$subNum == '71' & recogData$day == 25,] # is actually condition 3
+
+# Order according to words
+sub63 <- sub63[order(sub63$word),]
+sub14 <- sub14[order(sub14$word),]
+sub56 <- sub56[order(sub56$word),]
+sub79 <- sub79[order(sub79$word),] 
+
+# Change  important values
+sub63$task      <- sub14$task
+sub63$studied   <- sub14$studied
+sub63$condition <- 6
+
+sub79$task      <- sub56$task
+sub79$subNum    <- 79
+sub79$studied   <- sub56$studied
+sub79$condition <- 3
+
+# Replug into the dataframe
+recogData[recogData$subNum == '63',1:ncol(recogData)] <- sub63
+recogData[recogData$subNum == '71' & recogData$day == 25, 1:ncol(recogData)] <- sub79
 
 # Split data into two each encoding task
 recogData_alpha  <- subset(recogData, task == 'alphabetical' | task == 'unstudied')
@@ -699,4 +726,21 @@ ggplot(questData, aes(x = shortcut, y = rating, colour = group)) +
                key_glyph = "rect") +
   scale_fill_mrc(palette = 'primary') +
   coord_flip()
+```
+
+```{r quest_test}
+quests <- unique(questData$question)
+nQuest <- length(quests)
+
+bf10s  <- c()
+
+for(i in 1:nQuest){
+  temp1 <- questData[questData$question == quests[i] & questData$group == 'Novelty', 'rating']
+  temp2 <- questData[questData$question == quests[i] & questData$group == 'Control', 'rating']
+  bf10s[i] <- reportBF(ttestBF(temp1, temp2, paired = FALSE))
+}
+
+quest_results <- data.frame(Question = quests, BF10 = bf10s)
+quest_results$BF01 <- round(1/quest_results$BF10, 2)
+kable(quest_results)
 ```
