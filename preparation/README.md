@@ -3,31 +3,17 @@ README
 
 This README provide a quick overview of what is to be found in this folder. 
 
-# Folders and their content
-- ***ignore_pilotData1*** contains pilot data 1.
-- ***ignore_pilotData2*** contains pilot data 1.
-- ***ignore_rawData***    contains the raw data that is not anonymised. 
-	- ***allFiles*** contains all files.
-	- ***demographics*** contains the demographic files.
-	- ***excluded***   contains the files from excluded participants.
-	- ***judgement***  contains the .dat files (MATLAB files can be found in ***allFilles***) from the encoding judgement task (living/non-living & alphabetical/non-alphabetical).
-	- ***questionnaire*** contains the questionnaire files.
-	- ***recallData.csv*** spreadsheet containing the manually added recal data
-	- ***recalled***       contains .txt files with recalled words for each participant. 
-	- ***recognition***   contains the .txt files for the online recognition task downloaded from JATOS. 
-- ***ignore_testData***   contains that was used to test the scripts. 
-
-designDeliberations.md
-designDeliberations.Rmd
-designDeliberations_files
-ignore_Files
-ignore_wordlist_original_allcodes_fromOttten2001.txt
-powerAnalysis.md
-powerAnalysis.R
-powerAnalysis.Rmd
-powerAnalysis_20190921_160007.RData
-powerAnalysis_files
-randomiseOrder.R
-selectingCheckingWords.md
-selectingCheckingWords.Rmd
-selectingCheckingWords_files
+# Files/folders in this folder
+- ***designDeliberations.md*** File explaining some reasoning behind design and tests used in the manuscript. 
+- ***designDeliberations.Rmd*** File explaining some reasoning behind design and tests used in the manuscript. 
+- ***designDeliberations_files*** File explaining some reasoning behind design and tests used in the manuscript. 
+- ***ignore_wordlist_original_allcodes_fromOttten2001.txt*** A word list shared by Leun Otten (therefore not included in public repository). 
+- ***powerAnalysis.md*** File for the power analysis. 
+- ***powerAnalysis.R*** File for the power analysis. 
+- ***powerAnalysis.Rmd*** File for the power analysis. 
+- ***powerAnalysis_20190921_160007.RData*** Results of simulation for analysis. 
+- ***powerAnalysis_files*** Figures for powerAnalysis.md. 
+- ***randomiseOrder.R*** Script to randomise the order of the words. 
+- ***selectingCheckingWords.md*** File illustrating how the words were selected. 
+- ***selectingCheckingWords.Rmd*** File illustrating how the words were selected. 
+- ***selectingCheckingWords_files*** File illustrating how the words were selected. 

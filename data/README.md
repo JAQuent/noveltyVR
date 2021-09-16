@@ -3,7 +3,15 @@ README
 
 This README provide a quick overview of what is to be found in this folder. 
 
+# Files
+
+- ***noveltyVR_data_forSharing.RData*** Data used for analysis in Quent & Henson (2021).
+- ***prepare_data.R*** Script to prepate raw data used.
+
 # Folders and their content
+
+Note that these folders only exist in the local copy that includes raw data:
+
 - ***ignore_pilotData1*** contains pilot data 1.
 - ***ignore_pilotData2*** contains pilot data 1.
 - ***ignore_rawData***    contains the raw data that is not anonymised. 
