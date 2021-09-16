@@ -16,5 +16,5 @@ The experience of novelty can enhance memory for information that occurs close i
 ## Folders and their content
 - ***analysis***   contains analysis files. 
 - ***experiment*** contains scripts and files for the experiments. 
-- ***data***       contains the data (not shared yet). 
+- ***data***       contains the data. 
 - ***preparation*** contains various files that were used in preparation of the experiment (e.g. sample size calculation). 
