@@ -670,8 +670,12 @@ val2 <- quest1_only[quest1_only$group == 'Control', 'trans_rating']
 
 str3 <- mean_SD_str2(val1, 1, digits, 'signif')
 str4 <- mean_SD_str2(val2, 1, digits, 'signif')
-d2   <- signif(cohens_d_raw(val1, val2), digits)
 
+# Deal with negative skew by using arcsine transformation
+val1 <- arcsine_transform(val1/6)
+val2 <- arcsine_transform(val2/6)
+
+d2   <- signif(cohens_d_raw(val1, val2), digits)
 bf2  <- reportBF(ttestBF(x = val1, y = val2), digits, 'signif')
 
 ```
