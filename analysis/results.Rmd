@@ -254,10 +254,10 @@ str2 <- mean_SD_str2(val2, 1, digits, 'signif')
 d1   <- signif(mean(val2 - val1)/sd(val2 - val1), digits)
 
 # Test
-test0.1 <- ttestBF(x = val1, y = val2)
+test0.1 <- ttestBF(x = val1, y = val2, paired = TRUE)
 test0.1 <- as.character(reportBF(test0.1, digits, 'signif'))
 
-#################### Recognition
+#################### Recognition (Not the analysis in the paper see Pr analysis)
 hypo0 <- ddply(mainData, c('subNum', 'encodTask'), summarise, value = mean(value), trans_value = mean(trans_value))
 
 # Get values
@@ -274,7 +274,7 @@ val2 <- arcsine_transform(val2)
 d2   <- signif(mean(val2 - val1)/sd(val2 - val1), digits)
 
 # Test
-test0.2 <- ttestBF(x = val1, y = val2)
+test0.2 <- ttestBF(x = val1, y = val2, paired = TRUE)
 test0.2 <- as.character(reportBF(test0.2, digits, 'signif'))
 
 ```
@@ -401,7 +401,7 @@ results[3, 2] <- as.numeric(as.vector(test2.1[2]))
 results[3, 3] <- 1/as.numeric(as.vector(test2.1[2]))
 bf1           <- signif(results[3, 2], digits)
 
-# Hypothesis 2.2
+# Hypothesis 2.2 Not the analysis in the paper see Pr analysis)
 hypo2.2 <- ddply(mainData, c('subNum', 'group', 'encodTask'), summarise , value = mean(value), trans_value = mean(trans_value))
 diff2.2.1_val <- hypo2.2[hypo2.2$group == 'Control' & hypo2.2$encodTask == 'living', 'value'] - 
                  hypo2.2[hypo2.2$group == 'Control' & hypo2.2$encodTask == 'alphabetical', 'value']
