@@ -11,7 +11,7 @@
 # */
 ######################################################
 # Path to parent folder noveltyVR
-path2parent <- "C:/Users/Alex/Documents/noveltyVR" # This need to be changed to run this document
+path2parent <- "C:/Users/Alex/Documents/Work/noveltyVR" # This need to be changed to run this document
 ######################################################
 
 # Libs
@@ -108,7 +108,7 @@ recogData_alpha_agg <- ddply(recogData_alpha, c('subNum', 'group', 'condition'),
                              newFamiliar      = sum(studied == 'unstudied' & response == 'f'),
                              newNew           = sum(studied == 'unstudied' & response == 'n'))
 
-fit_alpha            <- fit.mpt(recogData_alpha_agg[, 4:9], "analysis/MPT_RKN.model", n.optim = 50)
+fit_alpha            <- fit.mpt(recogData_alpha_agg[, 4:9], "MPT_RKN.model", n.optim = 50)
 fit_alpha_individual <- fit_alpha$parameters$individual
 fit_alpha_individual <- as.data.frame(t(fit_alpha_individual[,1,]))
 
@@ -121,7 +121,7 @@ recogData_living_agg <- ddply(recogData_living, c('subNum', 'group', 'condition'
                               newFamiliar      = sum(studied == 'unstudied' & response == 'f'),
                               newNew           = sum(studied == 'unstudied' & response == 'n'))
 
-fit_living            <- fit.mpt(recogData_living_agg[, 4:9], "analysis/MPT_RKN.model", n.optim = 50)
+fit_living            <- fit.mpt(recogData_living_agg[, 4:9], "MPT_RKN.model", n.optim = 50)
 fit_living_individual <- fit_living$parameters$individual
 fit_living_individual <- as.data.frame(t(fit_living_individual[,1,]))
 
@@ -194,7 +194,7 @@ figure1 <- plot_grid(pl1.1,
                      nrow = 2, labels = 'AUTO')
 
 # save as image
-save_plot("analysis/figures/figure1.png", figure1,
+save_plot("figures/figure1.png", figure1,
           base_height = 18/cm(1),
           base_width = 18/cm(1),
           base_aspect_ratio = 1)
@@ -218,10 +218,10 @@ hypo1.2$group <- factor(hypo1.2$group, levels = c(1, 2), labels =  c("Novelty", 
 
 
 # Hypothesis 2.1
-diff2.1.1 <- hypo2.1[hypo2.1$group == 'Control' & hypo2.1$encodTask == 'living', 'recalled'] - 
+diff2.1.1 <- hypo2.1[hypo2.1$group == 'Control' & hypo2.1$encodTask == 'animacy', 'recalled'] - 
              hypo2.1[hypo2.1$group == 'Control' & hypo2.1$encodTask == 'alphabetical', 'recalled']
 
-diff2.1.2 <- hypo2.1[hypo2.1$group == 'Novelty' & hypo2.1$encodTask == 'living', 'recalled'] - 
+diff2.1.2 <- hypo2.1[hypo2.1$group == 'Novelty' & hypo2.1$encodTask == 'animacy', 'recalled'] - 
              hypo2.1[hypo2.1$group == 'Novelty' & hypo2.1$encodTask == 'alphabetical', 'recalled']
 
 
@@ -264,24 +264,24 @@ df_diff3 <- data.frame(group = c(rep('Control', length(diff3.1)), rep('Novelty',
 # Hypothesis 4
 row.names(mainData) <- as.character(1:dim(mainData)[1])
 
-# (E1M1 – E2M1)
+# (E1M1 - E2M1)
 diff4.1 <- mainData[mainData$group == 'Control' & mainData$encodTask == 'living' & mainData$parameter == 'f', 'trans_value'] - 
            mainData[mainData$group == 'Control' & mainData$encodTask == 'alphabetical' & mainData$parameter == 'f', 'trans_value']
-# (E1M2 – E2M2)
+# (E1M2 - E2M2)
 diff4.2 <- mainData[mainData$group == 'Control' & mainData$encodTask == 'living' & mainData$parameter == 'r', 'trans_value'] - 
            mainData[mainData$group == 'Control' & mainData$encodTask == 'alphabetical' & mainData$parameter == 'r', 'trans_value']
 
-# Difference of differences (E1M1 – E2M1) – (E1M2 – E2M2)
+# Difference of differences (E1M1 - E2M1) - (E1M2 - E2M2)
 diff4.3     <- diff4.1 - diff4.2
 
 # Group 2
-# (E1M1 – E2M1)
+# (E1M1 - E2M1)
 diff4.4 <- mainData[mainData$group == 'Novelty' & mainData$encodTask =='living' & mainData$parameter == 'f', 'trans_value'] - 
            mainData[mainData$group == 'Novelty' & mainData$encodTask == 'alphabetical' & mainData$parameter == 'f', 'trans_value']
-# (E1M2 – E2M2)
+# (E1M2 - E2M2)
 diff4.5 <- mainData[mainData$group == 'Novelty' & mainData$encodTask == 'living' & mainData$parameter == 'r', 'trans_value'] - 
            mainData[mainData$group == 'Novelty' & mainData$encodTask == 'alphabetical' & mainData$parameter == 'r', 'trans_value']
-# Difference of differences (E1M1 – E2M1) – (E1M2 – E2M2)
+# Difference of differences (E1M1 - E2M1) - (E1M2 - E2M2)
 diff4.7     <- diff4.4 - diff4.5
 
 
@@ -294,6 +294,10 @@ df_diff4 <- data.frame(group = c(rep('Control', length(diff4.3)), rep('Novelty',
 # */
 # Plots
 # Hypothesis 1.1
+# Reorder factor to match all plots
+hypo1.1$group <- factor(hypo1.1$group, levels = c('Novelty', 'Control'))
+
+# Plot
 pl_hypo1.1 <- ggplot(hypo1.1, aes(x = group, y = recalled, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
@@ -301,7 +305,7 @@ pl_hypo1.1 <- ggplot(hypo1.1, aes(x = group, y = recalled, colour = group)) +
                position=position_dodge(width =  0.75),
                key_glyph = "rect") +
   scale_fill_mrc(palette = 'primary') +
-  labs(title = 'Hypothesis 1.1', y = 'Words recalled', x = 'Group') +
+  labs(title = 'Novelty effect in immediate recall', y = 'Words recalled', x = 'Group') +
   scale_color_mrc(palette = 'primary') +
   theme(legend.position = c(0, 1),
        legend.justification = c(0, 1),
@@ -309,6 +313,10 @@ pl_hypo1.1 <- ggplot(hypo1.1, aes(x = group, y = recalled, colour = group)) +
        legend.title = element_blank())
 
 # Hypothesis 1.2
+# Reorder factor to match all plots
+hypo1.2$group <- factor(hypo1.2$group, levels = c('Novelty', 'Control'))
+
+# Plot
 pl_hypo1.2 <- ggplot(hypo1.2, aes(x = group, y = pr, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
@@ -316,11 +324,15 @@ pl_hypo1.2 <- ggplot(hypo1.2, aes(x = group, y = pr, colour = group)) +
                position=position_dodge(width =  0.75),
                key_glyph = "rect") +
   scale_fill_mrc(palette = 'primary') +
-  labs(title = 'Hypothesis 1.2', y = 'Pr', x = 'Group') +
+  labs(title = 'Novelty effect in delayed recognition', y = 'Pr', x = 'Group') +
   scale_color_mrc(palette = 'primary') +
   theme(legend.position = 'none')
 
 # Hypothesis 2.1
+# Reorder factor to match all plots
+df_diff2.1$group <- factor(df_diff2.1$group, levels = c('Novelty', 'Control'))
+
+# Plot
 pl_hypo2.1 <- ggplot(df_diff2.1, aes(x = group, y = value, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
@@ -328,11 +340,15 @@ pl_hypo2.1 <- ggplot(df_diff2.1, aes(x = group, y = value, colour = group)) +
                position=position_dodge(width =  0.75),
                key_glyph = "rect") +
   scale_fill_mrc(palette = 'primary') +
-  labs(title = 'Hypothesis 2.1', y = 'Words recalled', x = 'Group') +
+  labs(title = 'Interaction of novelty & encoding \ntask in recall', y = 'Words recalled', x = 'Group') +
   scale_color_mrc(palette = 'primary') +
   theme(legend.position = 'none')
 
 # Hypothesis 2.2
+# Reorder factor to match all plots
+df_diff2.2$group <- factor(df_diff2.2$group, levels = c('Novelty', 'Control'))
+
+# Plot
 pl_hypo2.2 <- ggplot(df_diff2.2, aes(x = group, y = value, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
@@ -340,11 +356,15 @@ pl_hypo2.2 <- ggplot(df_diff2.2, aes(x = group, y = value, colour = group)) +
                position=position_dodge(width =  0.75),
                key_glyph = "rect") +
   scale_fill_mrc(palette = 'primary') +
-  labs(title = 'Hypothesis 2.2', y = 'Pr', x = 'Group') +
+  labs(title = 'Interaction of novelty & encoding \ntask in recognition', y = 'Pr', x = 'Group') +
   scale_color_mrc(palette = 'primary') +
   theme(legend.position = 'none')
 
 # Hypothesis 3
+# Reorder factor to match all plots
+df_diff3$group <- factor(df_diff3$group, levels = c('Novelty', 'Control'))
+
+# Plot
 pl_hypo3 <- ggplot(df_diff3, aes(x = group, y = value, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
@@ -352,11 +372,15 @@ pl_hypo3 <- ggplot(df_diff3, aes(x = group, y = value, colour = group)) +
                position=position_dodge(width =  0.75),
                key_glyph = "rect") +
   scale_fill_mrc(palette = 'primary') +
-  labs(title = 'Hypothesis 3', y = 'Trans. est. probability', x = 'Group') +
+  labs(title = 'Interaction of novelty & memory \nquality in recognition', y = 'Trans. est. probability', x = 'Group') +
   scale_color_mrc(palette = 'primary') +
   theme(legend.position = 'none')
 
 # Hypothesis 4
+# Reorder factor to match all plots
+df_diff4$group <- factor(df_diff4$group, levels = c('Novelty', 'Control'))
+
+# Plot
 pl_hypo4 <- ggplot(df_diff4, aes(x = group, y = value, colour = group)) + 
   geom_boxplot(outlier.shape = NA) + #avoid plotting outliers twice
   geom_point(position = position_jitterdodge()) +
@@ -364,15 +388,15 @@ pl_hypo4 <- ggplot(df_diff4, aes(x = group, y = value, colour = group)) +
                position=position_dodge(width =  0.75),
                key_glyph = "rect") +
   scale_fill_mrc(palette = 'primary') +
-  labs(title = 'Hypothesis 4', y = 'Trans. est. probability', x = 'Group') +
+  labs(title = 'Interaction of novelty, encoding task & \nmemory quality', y = 'Trans. est. probability', x = 'Group') +
   scale_color_mrc(palette = 'primary') +
   theme(legend.position = 'none')
 
 # Make 1 figure
-figure2 <- plot_grid(pl_hypo1.1, pl_hypo1.2, pl_hypo2.1, pl_hypo2.2, pl_hypo3, pl_hypo4, nrow = 3 , labels = 'AUTO')
+figure2 <- plot_grid(pl_hypo1.1, pl_hypo1.2, pl_hypo2.1, pl_hypo2.2, pl_hypo3, pl_hypo4, align = 'hv', nrow = 3 , labels = 'AUTO')
 
 # save as image
-save_plot("analysis/figures/figure2.png", figure2,
+save_plot("figures/figure2.png", figure2,
           base_height = 18/cm(1),
           base_width = 18/cm(1),
           base_aspect_ratio = 1)
@@ -474,7 +498,7 @@ pl_quest3 <- ggplot(quest3_only, aes(x = group, y = trans_rating, colour = group
 figure3 <- plot_grid(pl_ipq, pl_quest1, pl_quest2, pl_quest3, nrow = 2 , labels = 'AUTO')
 
 # save as image
-save_plot("analysis/figures/figure3.png", figure3,
+save_plot("figures/figure3.png", figure3,
           base_height = 18/cm(1),
           base_width = 18/cm(1),
           base_aspect_ratio = 1)
