@@ -17,7 +17,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 
 ######################################################
 # Path to parent folder noveltyVR
-path2parent <- "C:/Users/Alex/Documents/Work/noveltyVR" # This need to be changed to run this document
+path2parent <- "C:/Users/admin/Documents/GitHub/noveltyVR" # This need to be changed to run this document
 ######################################################
 ```
 
