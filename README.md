@@ -19,4 +19,4 @@ The experience of novelty can enhance memory for information that occurs close i
 - ***data***       contains the data. 
 - ***preparation*** contains various files that were used in preparation of the experiment (e.g. sample size calculation).
 
-Note Quent2022_QJEP_version.pdf is the published version of the journal. If you want to create version with code please run Quent2022_RMarkdown_version.Rmd. 
+Note Quent2022_QJEP_version.pdf is the published version of the journal. If you want to create a version with code chunks please run Quent2022_RMarkdown_version.Rmd. 
